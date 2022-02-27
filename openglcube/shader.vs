@@ -1,24 +1,18 @@
-//顶点着色器
-
-#ifdef GL_ES
 #version 330 core
-// Set default precision to medium
-precision mediump int;
-precision mediump float;
-
-#endif
+//顶点着色器
 
 uniform mat4 mvp_matrix;
 
-attribute vec4 a_position;
-attribute vec2 a_texcoord;
+layout (location = 0) in vec3 a_position;
+layout (location = 1) in vec2 a_texcoord;
+layout (location = 2) in vec3 a_normal;
 
-varying vec2 v_texcoord;
+out vec2 v_texcoord;
 
 void main()
 {
     // Calculate vertex position in screen space
-    gl_Position = mvp_matrix * a_position;
+    gl_Position = mvp_matrix * vec4(a_position,1);
 
     // Pass texture coordinate to fragment shader
     // Value will be automatically interpolated to fragments inside polygon faces

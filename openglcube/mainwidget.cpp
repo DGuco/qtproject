@@ -10,7 +10,8 @@ MainWidget::MainWidget(QWidget *parent) :
     texture(0),
     angularSpeed(0),
 	viewChageDisOld(0),
-	viewChageDisNew(0)
+	viewChageDisNew(0),
+	proindex(0)
 {
 }
 
@@ -81,10 +82,6 @@ void MainWidget::initializeGL()
     glClearColor(0, 0, 0, 1);
     initShaders();
     initTextures();
-	//开启深度测试
-    glEnable(GL_DEPTH_TEST);
-	//开启遮挡剔除
-    glDisable(GL_CULL_FACE);
     geometries = new GeometryEngine;
     //启动刷新定时器
     timer.start(1000 / ACTION_FPS, this);
@@ -93,14 +90,6 @@ void MainWidget::initializeGL()
 //! [3]
 void MainWidget::initShaders()
 {
-	// 编译 lighting vertex shader
-	if (!lightinhProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/base_lighting.vs"))
-		close();
-
-	// 编译 lighting fragment shader
-	if (!lightinhProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/base_lighting.fs"))
-		close();
-
     // 编译 筛子 vertex shader
     if (!cubeProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shader.vs"))
         close();
@@ -109,26 +98,21 @@ void MainWidget::initShaders()
     if (!cubeProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shader.fs"))
         close();
 
+	// 编译 lighting vertex shader
+	if (!lightinhProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/base_lighting.vs"))
+		close();
+
+	// 编译 lighting fragment shader
+	if (!lightinhProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/base_lighting.fs"))
+		close();
+
+	// Link shader pipeline
+	if (!cubeProgram.link())
+		close();
+
 	// Link shader pipeline
 	if (!lightinhProgram.link())
-	{
 		close();
-	}
-
-	// Bind shader pipeline for use
-	if (!lightinhProgram.bind())
-		close();
-
-    // Link shader pipeline
-	if (!cubeProgram.link())
-	{
-		qDebug() << "cubeProgram.link failed: "<< cubeProgram.log();
-		close();
-	}
-
-    // Bind shader pipeline for use
-    if (!cubeProgram.bind())
-        close();
 }
 void MainWidget::initTextures()
 {
@@ -150,6 +134,10 @@ void MainWidget::resizeGL(int w, int h)
 void MainWidget::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//开启深度测试
+	glEnable(GL_DEPTH_TEST);
+	//开启遮挡剔除
+	glDisable(GL_CULL_FACE);
     texture->bind();
 	qreal viewChangeRate = viewChageDisNew / 1000.f;
 	viewChageDisOld = viewChageDisNew;
@@ -164,11 +152,21 @@ void MainWidget::paintGL()
 	modelmatrix.rotate(rotation);
 	//滚轮缩放
 	modelmatrix.scale(1.0 * (1 + viewChangeRate));
+
+	//设置cube着色器变量
 	QMatrix4x4 mvpmatrix = projection * viewmatrix * modelmatrix;
-	//设置着色器变量
 	cubeProgram.setUniformValue("mvp_matrix", mvpmatrix);
 	cubeProgram.setUniformValue("texture", 0);
-    //渲染
-    geometries->drawCubeGeometry(&cubeProgram);
+	geometries->drawCubeGeometry(&cubeProgram);
+
+
+	//设置光源cube着色器变量
+	QMatrix4x4 lampmodelmatrix;
+	lampmodelmatrix.translate(1.0, 0.8, 0);
+	//缩放
+	lampmodelmatrix.scale(0.6);
+	QMatrix4x4 lampmvpmatrix = projection * viewmatrix * lampmodelmatrix;
+	lightinhProgram.setUniformValue("mvp_matrix", lampmvpmatrix);
+	lightinhProgram.setUniformValue("texture", 0);
 	geometries->drawLighting(&lightinhProgram);
 }

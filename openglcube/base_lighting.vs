@@ -1,18 +1,20 @@
 #version 330 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aNormal;
+//¶¥µã×ÅÉ«Æ÷
 
-out vec3 FragPos;
-out vec3 Normal;
+uniform mat4 mvp_matrix;
 
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
+layout (location = 0) in vec3 a_position;
+layout (location = 1) in vec2 a_texcoord;
+layout (location = 2) in vec3 a_normal;
+
+out vec2 v_texcoord;
 
 void main()
 {
-    FragPos = vec3(model * vec4(aPos, 1.0));
-    Normal = aNormal;  
-    
-    gl_Position = projection * view * vec4(FragPos, 1.0);
+    // Calculate vertex position in screen space
+    gl_Position = mvp_matrix * vec4(a_position,1);
+
+    // Pass texture coordinate to fragment shader
+    // Value will be automatically interpolated to fragments inside polygon faces
+    v_texcoord = a_texcoord;
 }

@@ -20,36 +20,40 @@ GeometryEngine::~GeometryEngine()
 
 void GeometryEngine::initCubeGeometry()
 {
-    VertexData vertices[48] = {
+	VertexData vertices[24] = {
 		////////////////////////////////CUBE1//////////////////////////////////////
-        // 点数4的面
-        {QVector3D(-1.0f, -1.0f,  1.0f), QVector2D(0.0f, 0.0f)},{QVector3D( 1.0f, -1.0f,  1.0f), QVector2D((1 / 3.0f), 0.0f)},
-        {QVector3D(-1.0f,  1.0f,  1.0f), QVector2D(0.0f,(1 / 2.0f))},{QVector3D( 1.0f,  1.0f,  1.0f), QVector2D((1 / 3.0f),(1 / 2.0f))}, 
+		// 点数4的面
+		{QVector3D(-1.0f, -1.0f,  1.0f), QVector2D(0.0f, 0.0f),	QVector3D(0.0f, 0.0f,1.0f) },
+		{QVector3D(1.0f, -1.0f,  1.0f),  QVector2D((1 / 3.0f), 0.0f),QVector3D(0.0f, 0.0f,1.0f) },
+		{QVector3D(-1.0f,  1.0f,  1.0f), QVector2D(0.0f,(1 / 2.0f)),QVector3D(0.0f, 0.0f,1.0f) },
+		{QVector3D(1.0f,  1.0f,  1.0f),  QVector2D((1 / 3.0f),(1 / 2.0f)),QVector3D(0.0f, 0.0f,1.0f) },
 		// 点数1的面
-        {QVector3D( 1.0f, -1.0f,  1.0f), QVector2D( 0.0f,(1 / 2.0f))},{QVector3D( 1.0f, -1.0f, -1.0f), QVector2D((1 / 3.0f),(1 / 2.0f))},  
-        {QVector3D( 1.0f,  1.0f,  1.0f), QVector2D(0.0f, 1.0f)},{QVector3D( 1.0f,  1.0f, -1.0f), QVector2D((1 / 3.0f), 1.0f)}, 
-        //点数3的面
-        {QVector3D( 1.0f, -1.0f, -1.0f), QVector2D((2 / 3.0f),(1 / 2.0f))},{QVector3D(-1.0f, -1.0f, -1.0f), QVector2D(1.0f,(1 / 2.0f))},  
-        {QVector3D( 1.0f,  1.0f, -1.0f), QVector2D((2 / 3.0f), 1.0f)},{QVector3D(-1.0f,  1.0f, -1.0f), QVector2D(1.0f, 1.0f)},  
+		{QVector3D(1.0f, -1.0f,  1.0f),  QVector2D(0.0f,(1 / 2.0f)), QVector3D(1.0f, 0.0f,0.0f) },
+		{QVector3D(1.0f, -1.0f, -1.0f),  QVector2D((1 / 3.0f),(1 / 2.0f)), QVector3D(1.0f, 0.0f,0.0f) },
+		{QVector3D(1.0f,  1.0f,  1.0f),  QVector2D(0.0f, 1.0f), QVector3D(1.0f, 0.0f,0.0f) },
+		{QVector3D(1.0f,  1.0f, -1.0f),  QVector2D((1 / 3.0f), 1.0f), QVector3D(1.0f, 0.0f,0.0f) },
+		//点数3的面
+		{QVector3D(1.0f, -1.0f, -1.0f),  QVector2D((2 / 3.0f),(1 / 2.0f)), QVector3D(0.0f, 0.0f,-1.0f) },
+		{QVector3D(-1.0f, -1.0f, -1.0f), QVector2D(1.0f,(1 / 2.0f)), QVector3D(0.0f, 0.0f,-1.0f) },
+		{QVector3D(1.0f,  1.0f, -1.0f),  QVector2D((2 / 3.0f), 1.0f), QVector3D(0.0f, 0.0f,-1.0f) },
+		{QVector3D(-1.0f,  1.0f, -1.0f), QVector2D(1.0f, 1.0f), QVector3D(0.0f, 0.0f,-1.0f)},
         //点数6的面
-        {QVector3D(-1.0f, -1.0f, -1.0f), QVector2D((2 / 3.0f), 0.0f)},{QVector3D(-1.0f, -1.0f,  1.0f), QVector2D(1.0f, 0.0f)},   
-        {QVector3D(-1.0f,  1.0f, -1.0f), QVector2D((2 / 3.0f),(1 / 2.0f))},{QVector3D(-1.0f,  1.0f,  1.0f), QVector2D(1.0f,(1 / 2.0f))},   
+        {QVector3D(-1.0f, -1.0f, -1.0f), QVector2D((2 / 3.0f), 0.0f), QVector3D(-1.0f, 0.0f,0.0f)},
+		{QVector3D(-1.0f, -1.0f,  1.0f), QVector2D(1.0f, 0.0f), QVector3D(-1.0f, 0.0f,0.0f) },
+        {QVector3D(-1.0f,  1.0f, -1.0f), QVector2D((2 / 3.0f),(1 / 2.0f)), QVector3D(-1.0f, 0.0f,0.0f)},
+		{QVector3D(-1.0f,  1.0f,  1.0f), QVector2D(1.0f,(1 / 2.0f)), QVector3D(-1.0f, 0.0f,0.0f)},
         //点数5的面
-        {QVector3D(-1.0f, -1.0f, -1.0f), QVector2D((1 / 3.0f), 0.0f)},{QVector3D( 1.0f, -1.0f, -1.0f), QVector2D((2 / 3.0f), 0.0f)},  
-        {QVector3D(-1.0f, -1.0f,  1.0f), QVector2D((1 / 3.0f),(1 / 2.0f))},{QVector3D( 1.0f, -1.0f,  1.0f), QVector2D((2 / 3.0f),(1 / 2.0f))},  
+        {QVector3D(-1.0f, -1.0f, -1.0f), QVector2D((1 / 3.0f), 0.0f), QVector3D(0.0f, -1.0f,0.0f) },
+		{QVector3D( 1.0f, -1.0f, -1.0f), QVector2D((2 / 3.0f), 0.0f), QVector3D(0.0f, -1.0f,0.0f)},
+        {QVector3D(-1.0f, -1.0f,  1.0f), QVector2D((1 / 3.0f),(1 / 2.0f)), QVector3D(0.0f, -1.0f,0.0f) },
+		{QVector3D( 1.0f, -1.0f,  1.0f), QVector2D((2 / 3.0f),(1 / 2.0f)), QVector3D(0.0f, -1.0f,0.0f) },
         //点数2的面
-        {QVector3D(-1.0f,  1.0f,  1.0f), QVector2D((1 / 3.0f),(1 / 2.0f))},{QVector3D( 1.0f,  1.0f,  1.0f), QVector2D((2 / 3.0f),(1 / 2.0f))},  
-        {QVector3D(-1.0f,  1.0f, -1.0f), QVector2D((1 / 3.0f), 1.0f)},{QVector3D( 1.0f,  1.0f, -1.0f), QVector2D((2 / 3.0f), 1.0f)},	
+        {QVector3D(-1.0f,  1.0f,  1.0f), QVector2D((1 / 3.0f),(1 / 2.0f)), QVector3D(0.0f, 1.0f,0.0f) },
+		{QVector3D( 1.0f,  1.0f,  1.0f), QVector2D((2 / 3.0f),(1 / 2.0f)), QVector3D(0.0f, 1.0f,0.0f) },
+        {QVector3D(-1.0f,  1.0f, -1.0f), QVector2D((1 / 3.0f), 1.0f), QVector3D(0.0f, 1.0f,0.0f) },
+		{QVector3D( 1.0f,  1.0f, -1.0f), QVector2D((2 / 3.0f), 1.0f), QVector3D(0.0f, 1.0f,0.0f) },
     };
-
-	int tmpIndex = 0;
-	for (int index = 24; index < 48; index++)
-	{
-		vertices[index].position = vertices[tmpIndex].position + QVector3D(3.5F, 3.5F, 0.0f);
-		vertices[index].texCoord = vertices[tmpIndex].texCoord;
-		tmpIndex++;
-	}
-	GLushort indices[72] = {
+	GLushort indices[36] = {
 		/**
 		 * 每两个三角形渲染一个面
 		 * 注意节点顺序，因为开启了遮挡剔除(glEnable(GL_CULL_FACE))， opengl是根据顶点顺序决定三角形法线方向的,顺时针顺序算出来
@@ -74,23 +78,20 @@ void GeometryEngine::initCubeGeometry()
 		20,  21,  23, //triangle11
 		22,  20,  23, //triangle12
 	};
-	tmpIndex = 0;
-	for (int index = 36; index < 72; index++)
-	{
-		indices[index] = indices[tmpIndex] + 36;
-		tmpIndex++;
-	}
     // 绑定顶点数组 VBO 0
     arrayBuf.bind();
-    arrayBuf.allocate(vertices, 48 * sizeof(VertexData));
+    arrayBuf.allocate(vertices, 24 * sizeof(VertexData));
 
     // 绑定索引数组 VBO 1
     indexBuf.bind();
-    indexBuf.allocate(indices, 72 * sizeof(GLushort));
+    indexBuf.allocate(indices, 36 * sizeof(GLushort));
 }
 
 void GeometryEngine::drawCubeGeometry(QOpenGLShaderProgram *program)
 {
+	// Bind shader pipeline for use
+	glUseProgram(program->programId());
+
     quintptr offset = 0;
 
 	//告诉opengl读取顶点坐标缓存数组的格式:类型float,每个数据大小sizeof(VertexData),
@@ -106,10 +107,35 @@ void GeometryEngine::drawCubeGeometry(QOpenGLShaderProgram *program)
     program->enableAttributeArray(texcoordLocation);
     program->setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 2, sizeof(VertexData));
 
+	offset += sizeof(QVector2D);
+	int normalLocation = program->attributeLocation("a_normal");
+	program->enableAttributeArray(normalLocation);
+	program->setAttributeBuffer(normalLocation, GL_FLOAT, offset, 3, sizeof(VertexData));
+
 	// 使用索引缓冲数组渲染三角形
-    glDrawElements(GL_TRIANGLES, 72, GL_UNSIGNED_SHORT, 0);  
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, 0);  
 }
 
 void GeometryEngine::drawLighting(QOpenGLShaderProgram *program)
 {
+	// Bind shader pipeline for use
+	glUseProgram(program->programId());
+
+	quintptr offset = 0;
+	int vertexLocation = program->attributeLocation("a_position");
+	program->enableAttributeArray(vertexLocation);
+	program->setAttributeBuffer(vertexLocation, GL_FLOAT, offset, 3, sizeof(VertexData));
+
+	offset += sizeof(QVector3D);
+	int texcoordLocation = program->attributeLocation("a_texcoord");
+	program->enableAttributeArray(texcoordLocation);
+	program->setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 2, sizeof(VertexData));
+
+	offset += sizeof(QVector2D);
+	int normalLocation = program->attributeLocation("a_normal");
+	program->enableAttributeArray(normalLocation);
+	program->setAttributeBuffer(normalLocation, GL_FLOAT, offset, 3, sizeof(VertexData));
+
+	// 使用索引缓冲数组渲染三角形
+	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, 0);
 }

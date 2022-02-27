@@ -12,6 +12,7 @@ public:
 	{
 		QVector3D position;  //opengl 顶点坐标
 		QVector2D texCoord;  //该顶点对应的纹理坐标(cube.png)
+		QVector3D normal;	 //法线向量
 	};
 public:
     GeometryEngine();
