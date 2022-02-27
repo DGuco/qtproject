@@ -56,7 +56,7 @@ void GeometryEngine::initCubeGeometry()
 	GLushort indices[36] = {
 		/**
 		 * 每两个三角形渲染一个面
-		 * 注意节点顺序，因为开启了遮挡剔除(glEnable(GL_CULL_FACE))， opengl是根据顶点顺序决定三角形法线方向的,顺时针顺序算出来
+		 * 注意节点顺序，因为开启了遮挡剔除(glEnable(GL_CULL_FACE)),opengl是根据顶点顺序决定三角形法线方向的,顺时针顺序算出来
 		 * 三角形是朝里的就不画了,所以 0 3 1 会导致该三角形不显示,后面的三角形同样的道理注意顶点顺序
 		 */
 		//Face 0
@@ -90,6 +90,7 @@ void GeometryEngine::initCubeGeometry()
 void GeometryEngine::drawCubeGeometry(QOpenGLShaderProgram *program)
 {
 	// Bind shader pipeline for use
+	int id = program->programId();
 	program->bind();
 
     quintptr offset = 0;
@@ -119,6 +120,7 @@ void GeometryEngine::drawCubeGeometry(QOpenGLShaderProgram *program)
 void GeometryEngine::drawLighting(QOpenGLShaderProgram *program)
 {
 	// Bind shader pipeline for use
+	int id = program->programId();
 	program->bind();
 
 	quintptr offset = 0;

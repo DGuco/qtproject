@@ -10,8 +10,7 @@ MainWidget::MainWidget(QWidget *parent) :
     texture(0),
     angularSpeed(0),
 	viewChageDisOld(0),
-	viewChageDisNew(0),
-	proindex(0)
+	viewChageDisNew(0)
 {
 }
 
@@ -95,7 +94,11 @@ void MainWidget::initShaders()
 		close();
 
 	// 编译 lighting fragment shader
-	if (!lightinhProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/base_lighting.fs"))
+	if (!lightinhProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/base_lighting.fs"))	
+		close();
+	
+	// Link shader pipeline
+	if (!lightinhProgram.link())	
 		close();
 
 	// 编译 筛子 vertex shader
@@ -104,10 +107,6 @@ void MainWidget::initShaders()
 
 	// 编译 筛子 fragment shader
 	if (!cubeProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shader.fs"))
-		close();
-
-	// Link shader pipeline
-	if (!lightinhProgram.link())
 		close();
 
 	// Link shader pipeline
@@ -144,6 +143,17 @@ void MainWidget::paintGL()
 	QMatrix4x4 viewmatrix;
 	//计算view矩阵
 	viewmatrix.lookAt(QVector3D(0,0,8), QVector3D(0, 0, -20), QVector3D(0, 1, 0));
+
+	//设置光源cube着色器变量
+	QMatrix4x4 lampmodelmatrix;
+	lampmodelmatrix.translate(1.0, 0.8, 0);
+	//缩放
+	lampmodelmatrix.scale(0.5);
+	QMatrix4x4 lampmvpmatrix = projection * viewmatrix * lampmodelmatrix;
+	lightinhProgram.setUniformValue("mvp_matrix", lampmvpmatrix);
+	lightinhProgram.setUniformValue("texture", 0);
+	geometries->drawLighting(&lightinhProgram);
+
 	//模型坐标转换矩阵坐标
 	QMatrix4x4 modelmatrix;
 	//平移至左下角
@@ -152,21 +162,9 @@ void MainWidget::paintGL()
 	modelmatrix.rotate(rotation);
 	//滚轮缩放
 	modelmatrix.scale(1.0 * (1 + viewChangeRate));
-
 	//设置cube着色器变量
 	QMatrix4x4 mvpmatrix = projection * viewmatrix * modelmatrix;
 	cubeProgram.setUniformValue("mvp_matrix", mvpmatrix);
 	cubeProgram.setUniformValue("texture", 0);
 	geometries->drawCubeGeometry(&cubeProgram);
-
-
-	//设置光源cube着色器变量
-	QMatrix4x4 lampmodelmatrix;
-	lampmodelmatrix.translate(1.0, 0.8, 0);
-	//缩放
-	lampmodelmatrix.scale(0.6);
-	QMatrix4x4 lampmvpmatrix = projection * viewmatrix * lampmodelmatrix;
-	lightinhProgram.setUniformValue("mvp_matrix", lampmvpmatrix);
-	lightinhProgram.setUniformValue("texture", 0);
-	geometries->drawLighting(&lightinhProgram);
 }

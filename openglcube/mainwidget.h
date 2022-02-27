@@ -45,7 +45,6 @@ private:
 	qreal viewChageDisOld;
 	qreal viewChageDisNew;
     QQuaternion rotation;
-	int   proindex;
 };
 
 #endif // MAINWIDGET_H
