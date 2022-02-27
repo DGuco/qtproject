@@ -90,7 +90,7 @@ void GeometryEngine::initCubeGeometry()
 void GeometryEngine::drawCubeGeometry(QOpenGLShaderProgram *program)
 {
 	// Bind shader pipeline for use
-	glUseProgram(program->programId());
+	program->bind();
 
     quintptr offset = 0;
 
@@ -119,7 +119,7 @@ void GeometryEngine::drawCubeGeometry(QOpenGLShaderProgram *program)
 void GeometryEngine::drawLighting(QOpenGLShaderProgram *program)
 {
 	// Bind shader pipeline for use
-	glUseProgram(program->programId());
+	program->bind();
 
 	quintptr offset = 0;
 	int vertexLocation = program->attributeLocation("a_position");

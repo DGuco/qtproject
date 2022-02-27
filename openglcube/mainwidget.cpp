@@ -90,14 +90,6 @@ void MainWidget::initializeGL()
 //! [3]
 void MainWidget::initShaders()
 {
-    // ±‡“Î …∏◊” vertex shader
-    if (!cubeProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shader.vs"))
-        close();
-
-    // ±‡“Î …∏◊” fragment shader
-    if (!cubeProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shader.fs"))
-        close();
-
 	// ±‡“Î lighting vertex shader
 	if (!lightinhProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/base_lighting.vs"))
 		close();
@@ -106,12 +98,20 @@ void MainWidget::initShaders()
 	if (!lightinhProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/base_lighting.fs"))
 		close();
 
-	// Link shader pipeline
-	if (!cubeProgram.link())
+	// ±‡“Î …∏◊” vertex shader
+	if (!cubeProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shader.vs"))
+		close();
+
+	// ±‡“Î …∏◊” fragment shader
+	if (!cubeProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shader.fs"))
 		close();
 
 	// Link shader pipeline
 	if (!lightinhProgram.link())
+		close();
+
+	// Link shader pipeline
+	if (!cubeProgram.link())
 		close();
 }
 void MainWidget::initTextures()
