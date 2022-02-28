@@ -136,20 +136,21 @@ void MainWidget::paintGL()
 	//开启深度测试
 	glEnable(GL_DEPTH_TEST);
 	//开启遮挡剔除
-	glDisable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
     texture->bind();
 	qreal viewChangeRate = viewChageDisNew / 1000.f;
 	viewChageDisOld = viewChageDisNew;
 	QMatrix4x4 viewmatrix;
 	//计算view矩阵
 	viewmatrix.lookAt(QVector3D(0,0,8), QVector3D(0, 0, -20), QVector3D(0, 1, 0));
-
 	//设置光源cube着色器变量
 	QMatrix4x4 lampmodelmatrix;
 	lampmodelmatrix.translate(1.0, 0.8, 0);
 	//缩放
 	lampmodelmatrix.scale(0.5);
 	QMatrix4x4 lampmvpmatrix = projection * viewmatrix * lampmodelmatrix;
+
+	lightinhProgram.bind();
 	lightinhProgram.setUniformValue("mvp_matrix", lampmvpmatrix);
 	lightinhProgram.setUniformValue("texture", 0);
 	geometries->drawLighting(&lightinhProgram);
@@ -164,7 +165,10 @@ void MainWidget::paintGL()
 	modelmatrix.scale(1.0 * (1 + viewChangeRate));
 	//设置cube着色器变量
 	QMatrix4x4 mvpmatrix = projection * viewmatrix * modelmatrix;
+
+	cubeProgram.bind();
 	cubeProgram.setUniformValue("mvp_matrix", mvpmatrix);
 	cubeProgram.setUniformValue("texture", 0);
 	geometries->drawCubeGeometry(&cubeProgram);
+	glFlush();
 }
