@@ -6,7 +6,7 @@
 
 //模型主动刷新帧率
 #define ACTION_FPS  60
-#define LIGHT_COLOR QVector3D(1.0f, 1.0f, 1.0f)
+#define LIGHT_COLOR QVector3D( 1.0f, 0.5f, 0.31f)
 #define EYE_CENTER  QVector3D(0.0,0.0,8.0)
 #define LIGHT_POS   QVector3D(2.0f, 1.0f, -1.0f)
 
@@ -92,30 +92,23 @@ void MainWidget::initializeGL()
     timer.start(1000 / ACTION_FPS, this);
 }
 
-//! [3]
 void MainWidget::initShaders()
 {
-	// 编译 lighting vertex shader
 	if (!lightinhProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/base_lighting.vs"))
 		close();
 
-	// 编译 lighting fragment shader
 	if (!lightinhProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/base_lighting.fs"))	
 		close();
 	
-	// Link shader pipeline
 	if (!lightinhProgram.link())	
 		close();
 
-	// 编译 筛子 vertex shader
 	if (!cubeProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shader.vs"))
 		close();
 
-	// 编译 筛子 fragment shader
 	if (!cubeProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shader.fs"))
 		close();
 
-	// Link shader pipeline
 	if (!cubeProgram.link())
 		close();
 }
@@ -149,6 +142,26 @@ void MainWidget::paintGL()
 	QMatrix4x4 viewmatrix;
 	//计算view矩阵
 	viewmatrix.lookAt(EYE_CENTER, QVector3D(0, 0, -20), QVector3D(0, 1, 0));
+
+	//模型坐标转换矩阵坐标
+	QMatrix4x4 modelmatrix;
+	//平移至左下角
+	modelmatrix.translate(-1.6, -0.8, 0);
+	//鼠标滚动旋转角度
+	modelmatrix.rotate(rotation);
+	//滚轮缩放
+	modelmatrix.scale(1.0 * (1 + viewChangeRate));
+	//设置cube着色器变量
+	QMatrix4x4 mvpmatrix = projection * viewmatrix * modelmatrix;
+	cubeProgram.bind();
+	cubeProgram.setUniformValue("lightColor", LIGHT_COLOR);
+	cubeProgram.setUniformValue("lightPos", LIGHT_POS);
+	cubeProgram.setUniformValue("viewPos", EYE_CENTER);
+	cubeProgram.setUniformValue("mvp_matrix", mvpmatrix);
+	cubeProgram.setUniformValue("texture", 0);
+	cubeProgram.setUniformValue("model_matrix", mvpmatrix);
+	geometries->drawCubeGeometry(&cubeProgram);
+
 	//设置光源cube着色器变量
 	QMatrix4x4 lampmodelmatrix;
 	lampmodelmatrix.translate(LIGHT_POS);
@@ -159,25 +172,4 @@ void MainWidget::paintGL()
 	lightinhProgram.setUniformValue("mvp_matrix", lampmvpmatrix);
 	lightinhProgram.setUniformValue("lightColor", LIGHT_COLOR);
 	geometries->drawLighting(&lightinhProgram);
-
-	//模型坐标转换矩阵坐标
-	QMatrix4x4 modelmatrix;
-	//平移至左下角
-	modelmatrix.translate(-1.6,-0.8,0);
-	//鼠标滚动旋转角度
-	modelmatrix.rotate(rotation);
-	//滚轮缩放
-	modelmatrix.scale(1.0 * (1 + viewChangeRate));
-	//设置cube着色器变量
-	QMatrix4x4 mvpmatrix = projection * viewmatrix * modelmatrix;
-
-	cubeProgram.bind();
-	cubeProgram.setUniformValue("lightColor", LIGHT_COLOR);
-	cubeProgram.setUniformValue("lightPos", LIGHT_POS);
-	cubeProgram.setUniformValue("viewPos", EYE_CENTER);
-	cubeProgram.setUniformValue("mvp_matrix", mvpmatrix);
-	cubeProgram.setUniformValue("texture", 0);
-	cubeProgram.setUniformValue("model_matrix", mvpmatrix);
-	geometries->drawCubeGeometry(&cubeProgram);
-	glFlush();
 }

@@ -29,12 +29,11 @@ void main()
     float specularStrength = 0.5;
     vec3 viewDir = normalize(viewPos - FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);  
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 2);
     vec3 specular = specularStrength * spec * lightColor;  
         
-	//把纹理中对应的颜色 * vec4(0.4,0.4,0.4,1)使其变暗
-    vec4 textureColor = texture2D(texture, v_texcoord) * vec4(0.1,0.1,0.1,1);
-
+	//获取纹理中对应的颜色
+    vec4 textureColor = texture2D(texture, v_texcoord);
 	//把纹理中的颜色和光照参数相乘
     FragColor = vec4(ambient + diffuse + specular, 1.0) * textureColor;
 
