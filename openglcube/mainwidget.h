@@ -11,8 +11,6 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
 
-//模型主动刷新帧率
-#define ACTION_FPS 60
 
 class GeometryEngine;
 

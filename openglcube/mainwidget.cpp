@@ -4,6 +4,12 @@
 #include <QTime>
 #include <QDebug>
 
+//模型主动刷新帧率
+#define ACTION_FPS  60
+#define LIGHT_COLOR QVector3D(1.0f, 1.0f, 1.0f)
+#define EYE_CENTER  QVector3D(0.0,0.0,8.0)
+#define LIGHT_POS   QVector3D(2.0f, 1.0f, -1.0f)
+
 MainWidget::MainWidget(QWidget *parent) :
     QOpenGLWidget(parent),
     geometries(0),
@@ -142,17 +148,16 @@ void MainWidget::paintGL()
 	viewChageDisOld = viewChageDisNew;
 	QMatrix4x4 viewmatrix;
 	//计算view矩阵
-	viewmatrix.lookAt(QVector3D(0,0,8), QVector3D(0, 0, -20), QVector3D(0, 1, 0));
+	viewmatrix.lookAt(EYE_CENTER, QVector3D(0, 0, -20), QVector3D(0, 1, 0));
 	//设置光源cube着色器变量
 	QMatrix4x4 lampmodelmatrix;
-	lampmodelmatrix.translate(1.0, 0.8, 0);
+	lampmodelmatrix.translate(LIGHT_POS);
 	//缩放
-	lampmodelmatrix.scale(0.5);
+	lampmodelmatrix.scale(0.4);
 	QMatrix4x4 lampmvpmatrix = projection * viewmatrix * lampmodelmatrix;
-
 	lightinhProgram.bind();
 	lightinhProgram.setUniformValue("mvp_matrix", lampmvpmatrix);
-	lightinhProgram.setUniformValue("texture", 0);
+	lightinhProgram.setUniformValue("lightColor", LIGHT_COLOR);
 	geometries->drawLighting(&lightinhProgram);
 
 	//模型坐标转换矩阵坐标
@@ -167,8 +172,12 @@ void MainWidget::paintGL()
 	QMatrix4x4 mvpmatrix = projection * viewmatrix * modelmatrix;
 
 	cubeProgram.bind();
+	cubeProgram.setUniformValue("lightColor", LIGHT_COLOR);
+	cubeProgram.setUniformValue("lightPos", LIGHT_POS);
+	cubeProgram.setUniformValue("viewPos", EYE_CENTER);
 	cubeProgram.setUniformValue("mvp_matrix", mvpmatrix);
 	cubeProgram.setUniformValue("texture", 0);
+	cubeProgram.setUniformValue("model_matrix", mvpmatrix);
 	geometries->drawCubeGeometry(&cubeProgram);
 	glFlush();
 }

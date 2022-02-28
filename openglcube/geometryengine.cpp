@@ -122,16 +122,6 @@ void GeometryEngine::drawLighting(QOpenGLShaderProgram *program)
 	program->enableAttributeArray(vertexLocation);
 	program->setAttributeBuffer(vertexLocation, GL_FLOAT, offset, 3, sizeof(VertexData));
 
-	offset += sizeof(QVector3D);
-	int texcoordLocation = program->attributeLocation("a_texcoord");
-	program->enableAttributeArray(texcoordLocation);
-	program->setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 2, sizeof(VertexData));
-
-	offset += sizeof(QVector2D);
-	int normalLocation = program->attributeLocation("a_normal");
-	program->enableAttributeArray(normalLocation);
-	program->setAttributeBuffer(normalLocation, GL_FLOAT, offset, 3, sizeof(VertexData));
-
 	// 使用索引缓冲数组渲染三角形
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, 0);
 }

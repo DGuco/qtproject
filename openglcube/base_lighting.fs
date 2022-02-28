@@ -1,12 +1,11 @@
 #version 330 core
 //像素着色器
 
-uniform sampler2D texture;
-in vec2 v_texcoord;
+out vec4 FragColor;
+
+uniform vec3 lightColor;
 
 void main()
 {
-    //把纹理中对应的颜色 * vec4(0.1,0.1,0.1,1)使其变暗
-    gl_FragColor = texture2D(texture, v_texcoord);
-}
-
+     FragColor = vec4(lightColor,1.0); 
+} 
