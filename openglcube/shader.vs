@@ -4,9 +4,9 @@
 uniform mat4 mvp_matrix;
 uniform mat4 model_matrix;
 
-layout (location = 0) in vec3 a_position;
-layout (location = 1) in vec2 a_texcoord;
-layout (location = 2) in vec3 a_normal;
+layout (location = 0) in vec3 a_position;   //空间坐标
+layout (location = 1) in vec2 a_texcoord;   //纹理坐标
+layout (location = 2) in vec3 a_normal;	    //法线向量
 
 out vec2 v_texcoord;
 out vec3 FragPos;
