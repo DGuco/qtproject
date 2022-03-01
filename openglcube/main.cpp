@@ -4,6 +4,7 @@
  * https://learnopengl-cn.github.io/01%20Getting%20started/08%20Coordinate%20Systems/
  * https://learnopengl-cn.github.io/01%20Getting%20started/04%20Hello%20Triangle/
  * https://www.cnblogs.com/graphics/archive/2012/07/25/2582119.html
+ * https://learnopengl-cn.github.io/02%20Lighting/02%20Basic%20Lighting/
  */
 #include <QApplication>
 #include <QLabel>

@@ -6,9 +6,9 @@
 
 //模型主动刷新帧率
 #define ACTION_FPS  60
-#define LIGHT_COLOR QVector3D( 1.0f, 0.5f, 0.31f)
-#define EYE_CENTER  QVector3D(0.0,0.0,8.0)
-#define LIGHT_POS   QVector3D(2.0f, 1.0f, -1.0f)
+#define LIGHT_COLOR QVector3D(1.2f, 1.0f, 2.0f)
+#define EYE_CENTER  QVector3D(0.0, 0.0, 8.0)
+#define LIGHT_POS   QVector3D(2.5f, 2.0f, -1.0f)
 
 MainWidget::MainWidget(QWidget *parent) :
     QOpenGLWidget(parent),
@@ -159,7 +159,7 @@ void MainWidget::paintGL()
 	cubeProgram.setUniformValue("viewPos", EYE_CENTER);
 	cubeProgram.setUniformValue("mvp_matrix", mvpmatrix);
 	cubeProgram.setUniformValue("texture", 0);
-	cubeProgram.setUniformValue("model_matrix", mvpmatrix);
+	cubeProgram.setUniformValue("model_matrix", modelmatrix);
 	geometries->drawCubeGeometry(&cubeProgram);
 
 	//设置光源cube着色器变量

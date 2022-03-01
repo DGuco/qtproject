@@ -1,8 +1,6 @@
 #version 330 core
 //像素着色器
 
-out vec4 FragColor;
-
 in vec3 Normal;  
 in vec3 FragPos;  
   
@@ -15,27 +13,26 @@ in vec2 v_texcoord;
 
 void main()
 {
-    // ambient
-    float ambientStrength = 0.5;
+    //环境光照
+    float ambientStrength = 0.6;
     vec3 ambient = ambientStrength * lightColor;
   	
-    // diffuse 
+    // 漫反射光照 
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(lightPos - FragPos);
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * lightColor;
-    
-    // specular
-    float specularStrength = 0.5;
+         
+    // 镜面光照
+    float specularStrength = 1.0;
     vec3 viewDir = normalize(viewPos - FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);  
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 2);
     vec3 specular = specularStrength * spec * lightColor;  
         
-	//获取纹理中对应的颜色
-    vec4 textureColor = texture2D(texture, v_texcoord);
+	//获取纹理中对应的颜色 * vec4(0.7,0.7,0.7,1)让没有光照的部分稍微变暗一些
+    vec4 textureColor = texture2D(texture, v_texcoord) * vec4(0.7,0.7,0.7,1);
 	//把纹理中的颜色和光照参数相乘
-    FragColor = vec4(ambient + diffuse + specular, 1.0) * textureColor;
-
+    gl_FragColor = vec4(ambient + diffuse + specular, 1.0) * textureColor;
 }
 

@@ -6,5 +6,6 @@ layout (location = 0) in vec3 a_position;
 
 void main()
 {
+	//mvp_matrix = projection * viewmatrix * modelmatrix
     gl_Position = mvp_matrix * vec4(a_position,1);
 }
