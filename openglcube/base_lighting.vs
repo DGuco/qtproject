@@ -1,6 +1,6 @@
 #version 330 core
 
-//¶¥µã×ÅÉ«Æ÷
+//vertex shader
 
 uniform mat4 mvp_matrix;
 layout (location = 0) in vec3 a_position;
