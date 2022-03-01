@@ -46,8 +46,8 @@ void MainWidget::mouseReleaseEvent(QMouseEvent *e)
     QVector2D diff = QVector2D(e->localPos()) - mousePressPosition;
     QVector3D n = QVector3D(diff.y(), diff.x(), 0.0).normalized();
     qreal acc = diff.length() / 100.0;
+	//计算旋转的转轴向量
     rotationAxis = (rotationAxis * angularSpeed + n * acc).normalized();
-
     //累加鼠标移动的速度
     angularSpeed += acc;
 }
