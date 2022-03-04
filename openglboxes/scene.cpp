@@ -188,6 +188,7 @@ TwoSidedGraphicsWidget::TwoSidedGraphicsWidget(QGraphicsScene *scene)
     , m_current(0)
     , m_angle(0)
     , m_delta(0)
+	, m_scale(0)
 {
     for (int i = 0; i < 2; ++i)
         m_proxyWidgets[i] = 0;
@@ -202,18 +203,21 @@ void TwoSidedGraphicsWidget::setWidget(int index, QWidget *widget)
     }
 
     GraphicsWidget *proxy = new GraphicsWidget;
-    proxy->setWidget(widget);
+	//保证ui在场景的最顶层不会被其他item遮住
+	proxy->setZValue(100);
+	proxy->setWidget(widget);
 
     if (m_proxyWidgets[index])
         delete m_proxyWidgets[index];
     m_proxyWidgets[index] = proxy;
 
     proxy->setCacheMode(QGraphicsItem::ItemCoordinateCache);
-    proxy->setZValue(1e30); // Make sure the dialog is drawn on top of all other (OpenGL) items
 
+	//只显示当前的GraphicsWidget
     if (index != m_current)
         proxy->setVisible(false);
 
+	//把widget添加到场景中
     qobject_cast<QGraphicsScene *>(parent())->addItem(proxy);
 }
 
@@ -229,12 +233,15 @@ QWidget *TwoSidedGraphicsWidget::widget(int index)
 
 void TwoSidedGraphicsWidget::flip()
 {
-    m_delta = (m_current == 0 ? 9 : -9);
+    m_delta = (m_current == 0 ? 5 : -5);
+	m_scale = 100;
     animateFlip();
+	//animateHide();
 }
 
 void TwoSidedGraphicsWidget::animateFlip()
 {
+	return animateHide();
     m_angle += m_delta;
     if (m_angle == 90) {
         int old = m_current;
@@ -245,13 +252,40 @@ void TwoSidedGraphicsWidget::animateFlip()
     }
 
     QRectF r = m_proxyWidgets[m_current]->boundingRect();
-    m_proxyWidgets[m_current]->setTransform(QTransform()
-        .translate(r.width() / 2, r.height() / 2)
-        .rotate(m_angle - 180 * m_current, Qt::YAxis)
-        .translate(-r.width() / 2, -r.height() / 2));
-
+	QTransform anTransform;
+	//把坐标系移动到widget的中心
+	anTransform.translate(r.width() / 2, r.height() / 2);
+	//围绕y轴旋转
+	anTransform.rotate(m_angle - 180 * m_current, Qt::YAxis);
+	//还原坐标系
+	anTransform.translate(-r.width() / 2, -r.height() / 2);
+    m_proxyWidgets[m_current]->setTransform(anTransform);
     if ((m_current == 0 && m_angle > 0) || (m_current == 1 && m_angle < 180))
         QTimer::singleShot(25, this, SLOT(animateFlip()));
+}
+void TwoSidedGraphicsWidget::animateHide()
+{
+	m_scale -= 1;
+	m_angle += m_delta;
+	QRectF r = m_proxyWidgets[m_current]->boundingRect();
+	QTransform anTransform;
+	//anTransform.translate(r.width() / 2, r.height() / 2);
+	//anTransform.rotate(m_angle, Qt::ZAxis);
+	//anTransform.scale(0.5, 0.5);
+	//anTransform.translate(-r.width() / 2, -r.height() / 2);
+
+	
+	m_proxyWidgets[m_current]->widget()->setFixedSize(r.width() * 0.5f, r.height() * 0.5f);
+
+// 	if (m_scale >= 10)
+// 	{
+// 		QTimer::singleShot(25, this, SLOT(animateHide()));
+// 	}
+}
+
+void TwoSidedGraphicsWidget::animateShow()
+{
+
 }
 
 QVariant GraphicsWidget::itemChange(GraphicsItemChange change, const QVariant &value)
@@ -287,6 +321,10 @@ void GraphicsWidget::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     //painter->setRenderHint(QPainter::Antialiasing, true);
 }
 
+void GraphicsWidget::closeEvent(QCloseEvent* event)
+{
+	event->ignore();
+}
 //============================================================================//
 //                             RenderOptionsDialog                            //
 //============================================================================//
@@ -928,7 +966,8 @@ void Scene::drawBackground(QPainter *painter, const QRectF &)
 
     QMatrix4x4 view;
     view.rotate(m_trackBalls[2].rotation());
-    view(2, 3) -= 2.0f * std::exp(m_distExp / 1200.0f);
+	view.translate(QVector3D(0, 0,-2.0f * std::exp(m_distExp / 1200.0f)));
+    //view(2, 3) -= 2.0f * std::exp(m_distExp / 1200.0f);
     renderBoxes(view);
 
     defaultStates();
@@ -1018,8 +1057,9 @@ void Scene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 void Scene::wheelEvent(QGraphicsSceneWheelEvent * event)
 {
     QGraphicsScene::wheelEvent(event);
-    if (!event->isAccepted()) {
-        m_distExp += event->delta();
+    if (!event->isAccepted()) 
+	{
+        m_distExp -= event->delta();
         if (m_distExp < -8 * 120)
             m_distExp = -8 * 120;
         if (m_distExp > 10 * 120)

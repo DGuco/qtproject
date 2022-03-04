@@ -55,6 +55,7 @@
 
 #include <QtWidgets>
 #include <QGLWidget>
+#include <QVector>
 
 class GraphicsView : public QGraphicsView
 {
@@ -140,10 +141,10 @@ int main(int argc, char **argv)
         return -3;
     }
 
-    // TODO: Make conditional for final release
-    QMessageBox::information(0, "For your information",
-        "This demo can be GPU and CPU intensive and may\n"
-        "work poorly or not at all on your system.");
+//     // TODO: Make conditional for final release
+//     QMessageBox::information(0, "For your information",
+//         "This demo can be GPU and CPU intensive and may\n"
+//         "work poorly or not at all on your system.");
 
     widget->makeCurrent(); // The current context must be set before calling Scene's constructor
     Scene scene(1024, 768, maxTextureSize);

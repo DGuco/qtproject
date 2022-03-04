@@ -123,6 +123,7 @@ protected:
     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
     void resizeEvent(QGraphicsSceneResizeEvent *event) override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+	void closeEvent(QCloseEvent* event) override;
 };
 
 class TwoSidedGraphicsWidget : public QObject
@@ -134,13 +135,19 @@ public:
     QWidget *widget(int index);
 public slots:
     void flip();
-protected slots:
+protected slots:	
+	//翻转动画
     void animateFlip();
+	//隐藏动画
+	void animateHide();
+	//显示动画
+	void animateShow();
 private:
     GraphicsWidget *m_proxyWidgets[2];
     int m_current;
     int m_angle; // angle in degrees
     int m_delta;
+	int m_scale;
 };
 
 class RenderOptionsDialog : public QDialog
@@ -163,7 +170,6 @@ signals:
     void doubleClicked();
 protected:
     void mouseDoubleClickEvent(QMouseEvent *event) override;
-
     QVector<QByteArray> m_parameterNames;
     QComboBox *m_textureCombo;
     QComboBox *m_shaderCombo;

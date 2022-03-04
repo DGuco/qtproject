@@ -242,8 +242,7 @@ GLTextureCube::GLTextureCube(const QStringList& fileNames, int size)
 
         // Works on x86, so probably works on all little-endian systems.
         // Does it work on big-endian systems?
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, 0, 4, image.width(), image.height(), 0,
-            GL_BGRA, GL_UNSIGNED_BYTE, image.bits());
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, 0, 4, image.width(), image.height(), 0,GL_BGRA, GL_UNSIGNED_BYTE, image.bits());
 
         if (++index == 6)
             break;
@@ -251,8 +250,7 @@ GLTextureCube::GLTextureCube(const QStringList& fileNames, int size)
 
     // Clear remaining faces.
     while (index < 6) {
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, 0, 4, size, size, 0,
-            GL_BGRA, GL_UNSIGNED_BYTE, 0);
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, 0, 4, size, size, 0,GL_BGRA, GL_UNSIGNED_BYTE, 0);
         ++index;
     }
 
@@ -269,8 +267,7 @@ GLTextureCube::GLTextureCube(const QStringList& fileNames, int size)
 void GLTextureCube::load(int size, int face, QRgb *data)
 {
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_texture);
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, 0, 4, size, size, 0,
-            GL_BGRA, GL_UNSIGNED_BYTE, data);
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, 0, 4, size, size, 0, GL_BGRA, GL_UNSIGNED_BYTE, data);
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 
