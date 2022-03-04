@@ -283,15 +283,20 @@ bool ItemBase::isInResizeArea(const QPointF &pos)
 
 QtBox::QtBox(int size, int x, int y) : ItemBase(size, x, y), m_texture(0)
 {
-    for (int i = 0; i < 8; ++i) {
+	//初始化顶点信息
+    for (int i = 0; i < 8; ++i) 
+	{
         m_vertices[i].setX(i & 1 ? 0.5f : -0.5f);
         m_vertices[i].setY(i & 2 ? 0.5f : -0.5f);
         m_vertices[i].setZ(i & 4 ? 0.5f : -0.5f);
     }
-    for (int i = 0; i < 4; ++i) {
+	//初始化纹理坐标
+    for (int i = 0; i < 4; ++i) 
+	{
         m_texCoords[i].setX(i & 1 ? 1.0f : 0.0f);
         m_texCoords[i].setY(i & 2 ? 1.0f : 0.0f);
     }
+	//初始化法线向量
     m_normals[0] = QVector3D(-1.0f, 0.0f, 0.0f);
     m_normals[1] = QVector3D(1.0f, 0.0f, 0.0f);
     m_normals[2] = QVector3D(0.0f, -1.0f, 0.0f);

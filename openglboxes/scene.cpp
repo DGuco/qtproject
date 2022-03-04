@@ -269,18 +269,16 @@ void TwoSidedGraphicsWidget::animateHide()
 	m_angle += m_delta;
 	QRectF r = m_proxyWidgets[m_current]->boundingRect();
 	QTransform anTransform;
-	//anTransform.translate(r.width() / 2, r.height() / 2);
-	//anTransform.rotate(m_angle, Qt::ZAxis);
-	//anTransform.scale(0.5, 0.5);
-	//anTransform.translate(-r.width() / 2, -r.height() / 2);
+	anTransform.translate(r.width() / 2, r.height() / 2);
+	anTransform.rotate(m_angle, Qt::ZAxis);
+	anTransform.scale(m_scale / 100.0f, m_scale / 100.0f);
+	anTransform.translate(-r.width() / 2, -r.height() / 2);
 
-	
-	m_proxyWidgets[m_current]->widget()->setFixedSize(r.width() * 0.5f, r.height() * 0.5f);
-
-// 	if (m_scale >= 10)
-// 	{
-// 		QTimer::singleShot(25, this, SLOT(animateHide()));
-// 	}
+	m_proxyWidgets[m_current]->setTransform(anTransform);
+	if (m_scale >= 10)
+	{
+		QTimer::singleShot(25, this, SLOT(animateHide()));
+	}
 }
 
 void TwoSidedGraphicsWidget::animateShow()
