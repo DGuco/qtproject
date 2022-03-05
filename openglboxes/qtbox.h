@@ -9,7 +9,13 @@
 class ItemBase : public QGraphicsItem
 {
 public:
-    enum { Type = UserType + 1 };
+	enum 
+	{ 
+		ItemBox = UserType + 1,
+		ItemCircle = UserType + 2,
+		ItemSquare = UserType + 3,
+
+	};
 
     ItemBase(int size, int x, int y);
     virtual ~ItemBase();
@@ -22,6 +28,7 @@ protected:
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event) override;
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+	void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
     void wheelEvent(QGraphicsSceneWheelEvent *event) override;
     int type() const override;
@@ -45,6 +52,7 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 protected:
     ItemBase *createNew(int size, int x, int y) override;
+	int type() const override;
 private:
     QVector3D m_vertices[8];
     QVector3D m_texCoords[4];
@@ -59,6 +67,7 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 protected:
     ItemBase *createNew(int size, int x, int y) override;
+	int type() const override;
 
     QColor m_color;
 };
@@ -70,6 +79,7 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 protected:
     ItemBase *createNew(int size, int x, int y) override;
+	int type() const override;
 
     QPixmap m_image;
 };

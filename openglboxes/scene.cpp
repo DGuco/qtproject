@@ -3,6 +3,7 @@
 #include <QtGui/qmatrix4x4.h>
 #include <QtGui/qvector3d.h>
 #include <cmath>
+#include <typeinfo>
 
 #include "3rdparty/fbm.h"
 
@@ -195,11 +196,16 @@ void TwoSidedGraphicsWidget::hidewidget()
 	animateHide();
 }
 
-void TwoSidedGraphicsWidget::showidget()
+void TwoSidedGraphicsWidget::showidget(int x,int y)
 {
-	m_delta = (m_current == 0 ? 5 : -5);
-	m_scale = 100;
-	animateShow();
+	if (!m_proxyWidgets[m_current]->isVisible())
+	{
+		m_delta = (m_current == 0 ? 5 : -5);
+		m_scale = 100;
+		m_proxyWidgets[m_current]->setPos(x, y);
+		m_proxyWidgets[m_current]->setVisible(true);
+		animateShow();
+	}
 }
 
 void TwoSidedGraphicsWidget::animateFlip()
@@ -230,6 +236,19 @@ void TwoSidedGraphicsWidget::animateHide()
 {
 	m_scale -= 1;
 	m_angle += m_delta;
+	//缩放到15时隐藏ui，显示新的item
+	if(m_scale == 15)
+	{
+		m_proxyWidgets[m_current]->setVisible(false);
+		Scene* pScene = qobject_cast<Scene*>(parent());
+		if (pScene)
+		{
+			QRectF r = m_proxyWidgets[m_current]->boundingRect();
+			QWidget* pWidget = m_proxyWidgets[m_current]->widget();
+			//添加一个item
+			pScene->addItem(new CircleItem(64, pWidget->pos().x() +  r.width() / 2, pWidget->pos().y() + r.height() / 2));
+		}
+	}
 	QRectF r = m_proxyWidgets[m_current]->boundingRect();
 	QTransform anTransform;
 	anTransform.translate(r.width() / 2, r.height() / 2);
@@ -246,7 +265,7 @@ void TwoSidedGraphicsWidget::animateHide()
 
 void TwoSidedGraphicsWidget::animateShow()
 {
-
+	
 }
 
 QVariant GraphicsWidget::itemChange(GraphicsItemChange change, const QVariant &value)
@@ -535,14 +554,14 @@ Scene::Scene(int width, int height, int maxTextureSize)
     m_itemDialog = new ItemDialog;
     connect(m_itemDialog, SIGNAL(newItemTriggered(ItemDialog::ItemType)), this, SLOT(newItem(ItemDialog::ItemType)));
 
-    TwoSidedGraphicsWidget *twoSided = new TwoSidedGraphicsWidget(this);
-    twoSided->setWidget(0, m_renderOptions);
-    twoSided->setWidget(1, m_itemDialog);
+	m_twoSidedGraphicsWidget = new TwoSidedGraphicsWidget(this);
+	m_twoSidedGraphicsWidget->setWidget(0, m_renderOptions);
+	m_twoSidedGraphicsWidget->setWidget(1, m_itemDialog);
 
-    connect(m_renderOptions, SIGNAL(doubleClicked()), twoSided, SLOT(flipwidget()));
-	connect(m_itemDialog, SIGNAL(doubleClicked()), twoSided, SLOT(flipwidget()));
-	connect(m_renderOptions, SIGNAL(widgetHide()), twoSided, SLOT(hidewidget()));
-	connect(m_itemDialog, SIGNAL(widgetHide()), twoSided, SLOT(hidewidget()));
+    connect(m_renderOptions, SIGNAL(doubleClicked()), m_twoSidedGraphicsWidget, SLOT(flipwidget()));
+	connect(m_itemDialog, SIGNAL(doubleClicked()), m_twoSidedGraphicsWidget, SLOT(flipwidget()));
+	connect(m_renderOptions, SIGNAL(widgetHide()), m_twoSidedGraphicsWidget, SLOT(hidewidget()));
+	connect(m_itemDialog, SIGNAL(widgetHide()), m_twoSidedGraphicsWidget, SLOT(hidewidget()));
 
     addItem(new QtBox(64, width - 64, height - 64));
     addItem(new QtBox(64, width - 64, 64));
@@ -1051,6 +1070,27 @@ void Scene::wheelEvent(QGraphicsSceneWheelEvent * event)
             m_distExp = 10 * 120;
         event->accept();
     }
+}
+
+void Scene::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+{
+	QGraphicsScene::mouseDoubleClickEvent(event);
+	//获取双击的item
+	QGraphicsItem* item = mouseGrabberItem();
+	if (item)
+	{
+		//如果圆环
+		if (item->type() == ItemBase::ItemCircle)
+		{
+			int x = item->pos().x();
+			int y = item->pos().y();
+			m_twoSidedGraphicsWidget->showidget(x, y);
+		}
+		else
+		{
+
+		}
+	}
 }
 
 void Scene::setShader(int index)

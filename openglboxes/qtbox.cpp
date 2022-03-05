@@ -185,6 +185,11 @@ void ItemBase::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     }
 }
 
+void ItemBase::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+{
+	int a = 1;
+}
+
 void ItemBase::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key()) {
@@ -264,6 +269,11 @@ QtBox::~QtBox()
 ItemBase *QtBox::createNew(int size, int x, int y)
 {
     return new QtBox(size, x, y);
+}
+
+int QtBox::type() const
+{
+	return ItemBox;
 }
 
 void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -413,6 +423,10 @@ ItemBase *CircleItem::createNew(int size, int x, int y)
     return new CircleItem(size, x, y);
 }
 
+int CircleItem::type() const
+{
+	return ItemCircle;
+}
 //============================================================================//
 //                                 SquareItem                                 //
 //============================================================================//
@@ -441,4 +455,9 @@ void SquareItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 ItemBase *SquareItem::createNew(int size, int x, int y)
 {
     return new SquareItem(size, x, y);
+}
+
+int SquareItem::type() const
+{
+	return ItemSquare;
 }

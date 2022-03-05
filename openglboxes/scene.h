@@ -86,7 +86,7 @@ public:
 public slots:
     void flipwidget();
 	void hidewidget();
-	void showidget();
+	void showidget(int x,int y);
 protected slots:
 	//·­×ª¶¯»­
     void animateFlip();
@@ -141,6 +141,7 @@ public:
     };
 
     ItemDialog();
+public:
 	void emitHideWidget();
 public slots:
     void triggerNewQtBox();
@@ -180,6 +181,7 @@ protected:
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
     void wheelEvent(QGraphicsSceneWheelEvent * event) override;
+	void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
 private:
     void initGL();
     QPointF pixelPosToViewPos(const QPointF& p);
@@ -197,6 +199,7 @@ private:
     bool m_updateAllCubemaps;
 
     RenderOptionsDialog *m_renderOptions;
+	TwoSidedGraphicsWidget *m_twoSidedGraphicsWidget;
     ItemDialog *m_itemDialog;
     QTimer *m_timer;
     GLRoundedBox *m_box;
