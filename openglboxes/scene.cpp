@@ -191,20 +191,29 @@ void TwoSidedGraphicsWidget::flipwidget()
 
 void TwoSidedGraphicsWidget::hidewidget()
 {
-	m_delta = (m_current == 0 ? 5 : -5);
 	m_scale = 100;
+	m_delta = 720 / 2 / (100 - 6);
 	animateHide();
 }
 
-void TwoSidedGraphicsWidget::showidget(int x,int y)
+void TwoSidedGraphicsWidget::showidget()
 {
 	if (!m_proxyWidgets[m_current]->isVisible())
 	{
 		m_delta = (m_current == 0 ? 5 : -5);
-		m_scale = 100;
-		m_proxyWidgets[m_current]->setPos(x, y);
-		m_proxyWidgets[m_current]->setVisible(true);
-		animateShow();
+		m_scale = 6;
+		Scene* pScene = qobject_cast<Scene*>(parent());
+		if (pScene)
+		{
+			int width = pScene->width();
+			int high = pScene->height();
+			QRectF r = m_proxyWidgets[m_current]->boundingRect();
+			QTransform anTransform;
+			//移动至屏幕中央
+			m_proxyWidgets[m_current]->setPos(width / 2 - r.width() / 2 , high /2 - r.height() / 2);
+			m_proxyWidgets[m_current]->setVisible(true);
+			animateShow();
+		}
 	}
 }
 
@@ -234,10 +243,11 @@ void TwoSidedGraphicsWidget::animateFlip()
 
 void TwoSidedGraphicsWidget::animateHide()
 {
-	m_scale -= 1;
+	m_scale -= 2;
+	m_scale < 6 ? 6 : m_scale;
 	m_angle += m_delta;
 	//缩放到15时隐藏ui，显示新的item
-	if(m_scale == 15)
+	if(m_scale == 6)
 	{
 		m_proxyWidgets[m_current]->setVisible(false);
 		Scene* pScene = qobject_cast<Scene*>(parent());
@@ -257,7 +267,7 @@ void TwoSidedGraphicsWidget::animateHide()
 	anTransform.translate(-r.width() / 2, -r.height() / 2);
 
 	m_proxyWidgets[m_current]->setTransform(anTransform);
-	if (m_scale >= 10)
+	if (m_scale > 6)
 	{
 		QTimer::singleShot(25, this, SLOT(animateHide()));
 	}
@@ -265,7 +275,26 @@ void TwoSidedGraphicsWidget::animateHide()
 
 void TwoSidedGraphicsWidget::animateShow()
 {
-	
+	m_scale += 2;
+	m_angle += m_delta;
+	if (m_scale == 100)
+	{
+		QTransform anTransform;
+		m_proxyWidgets[m_current]->setTransform(anTransform);
+		return;
+	}
+	QRectF r = m_proxyWidgets[m_current]->boundingRect();
+	QTransform anTransform;
+	anTransform.translate(r.width() / 2, r.height() / 2);
+	anTransform.rotate(m_angle, Qt::ZAxis);
+	anTransform.scale(m_scale / 100.0f, m_scale / 100.0f);
+	anTransform.translate(-r.width() / 2, -r.height() / 2);
+
+	m_proxyWidgets[m_current]->setTransform(anTransform);
+	if (m_scale < 100)
+	{
+		QTimer::singleShot(25, this, SLOT(animateShow()));
+	}
 }
 
 QVariant GraphicsWidget::itemChange(GraphicsItemChange change, const QVariant &value)
@@ -1082,14 +1111,9 @@ void Scene::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 		//如果圆环
 		if (item->type() == ItemBase::ItemCircle)
 		{
-			int x = item->pos().x();
-			int y = item->pos().y();
-			m_twoSidedGraphicsWidget->showidget(x, y);
+			m_twoSidedGraphicsWidget->showidget();
 		}
-		else
-		{
-
-		}
+		delete item;
 	}
 }
 

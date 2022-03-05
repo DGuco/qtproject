@@ -86,7 +86,7 @@ public:
 public slots:
     void flipwidget();
 	void hidewidget();
-	void showidget(int x,int y);
+	void showidget();
 protected slots:
 	//·­×ª¶¯»­
     void animateFlip();
