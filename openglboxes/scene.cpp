@@ -237,8 +237,8 @@ void TwoSidedGraphicsWidget::animateFlip()
 	//还原坐标系
 	anTransform.translate(-r.width() / 2, -r.height() / 2);
     m_proxyWidgets[m_current]->setTransform(anTransform);
-    if ((m_current == 0 && m_angle > 0) || (m_current == 1 && m_angle < 180))
-        QTimer::singleShot(25, this, SLOT(animateFlip()));
+	if ((m_current == 0 && m_angle > 0) || (m_current == 1 && m_angle < 180))
+		QTimer::singleShot(25, this, SLOT(animateFlip()));
 }
 
 void TwoSidedGraphicsWidget::animateHide()
@@ -1112,8 +1112,9 @@ void Scene::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 		if (item->type() == ItemBase::ItemCircle)
 		{
 			m_twoSidedGraphicsWidget->showidget();
+			delete item;
+			item = NULL;
 		}
-		delete item;
 	}
 }
 
