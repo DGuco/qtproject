@@ -1,4 +1,9 @@
 //#include <GL/glew.h>
+/**
+ * https://zhuanlan.zhihu.com/p/346844820
+ * https://zhuanlan.zhihu.com/p/22337544
+ * https://learnopengl-cn.github.io/04%20Advanced%20OpenGL/06%20Cubemaps/
+ */
 #include "glextensions.h"
 
 #include "scene.h"

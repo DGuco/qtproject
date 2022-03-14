@@ -173,7 +173,7 @@ public slots:
 protected:
     void renderBoxes(const QMatrix4x4 &view, int excludeBox = -2);
     void setStates();
-    void setLights();
+    void setLights(QGLShaderProgram* program);
     void defaultStates();
     void renderCubemaps();
 
@@ -186,7 +186,6 @@ private:
     void initGL();
     QPointF pixelPosToViewPos(const QPointF& p);
 
-    QTime m_time;
     int m_lastTime;
     int m_mouseEventTime;
     int m_distExp;
@@ -205,15 +204,15 @@ private:
     GLRoundedBox *m_box;
     TrackBall m_trackBalls[3];
     QVector<GLTexture *> m_textures;
-    GLTextureCube *m_environment;
     GLTexture3D *m_noise;
     GLRenderTargetCube *m_mainCubemap;
     QVector<GLRenderTargetCube *> m_cubemaps;
     QVector<QGLShaderProgram *> m_programs;
     QGLShader *m_vertexShader;
     QVector<QGLShader *> m_fragmentShaders;
-    QGLShader *m_environmentShader;
-    QGLShaderProgram *m_environmentProgram;
+	GLTextureCube *m_environment;    //立方体贴图
+    QGLShader *m_environmentShader;  //天空壳shader
+    QGLShaderProgram *m_environmentProgram;//天空壳shader program
 };
 
 #endif

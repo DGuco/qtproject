@@ -158,6 +158,7 @@ void MainWidget::paintGL()
 	cubeProgram.setUniformValue("lightPos", LIGHT_POS);
 	cubeProgram.setUniformValue("viewPos", EYE_CENTER);
 	cubeProgram.setUniformValue("mvp_matrix", mvpmatrix);
+	//渲染管线只有一个纹理，指定着色器texture为0号纹理
 	cubeProgram.setUniformValue("texture", 0);
 	cubeProgram.setUniformValue("model_matrix", modelmatrix);
 	geometries->drawCubeGeometry(&cubeProgram);

@@ -54,6 +54,9 @@ protected:
     bool m_failed;
 };
 
+/**
+ * 2d纹理
+ */
 class GLTexture2D : public GLTexture
 {
 public:
@@ -64,6 +67,10 @@ public:
     void unbind() override;
 };
 
+
+/**
+ * 3dw纹理
+ */
 class GLTexture3D : public GLTexture
 {
 public:
@@ -75,6 +82,9 @@ public:
     void unbind() override;
 };
 
+/**
+ * 立方体纹理贴图
+ */
 class GLTextureCube : public GLTexture
 {
 public:
@@ -84,9 +94,6 @@ public:
     void bind() override;
     void unbind() override;
 };
-
-// TODO: Define and implement class below
-//class GLRenderTarget2D : public GLTexture2D
 
 class GLRenderTargetCube : public GLTextureCube
 {

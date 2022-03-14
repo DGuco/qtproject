@@ -208,7 +208,6 @@ void TwoSidedGraphicsWidget::showidget()
 			int width = pScene->width();
 			int high = pScene->height();
 			QRectF r = m_proxyWidgets[m_current]->boundingRect();
-			QTransform anTransform;
 			//移动至屏幕中央
 			m_proxyWidgets[m_current]->setPos(width / 2 - r.width() / 2 , high /2 - r.height() / 2);
 			m_proxyWidgets[m_current]->setVisible(true);
@@ -546,10 +545,10 @@ void ItemDialog::mouseDoubleClickEvent(QMouseEvent *event)
 //============================================================================//
 
 const static char environmentShaderText[] =
-    "uniform samplerCube env;"
-    "void main() {"
-        "gl_FragColor = textureCube(env, gl_TexCoord[1].xyz);"
-    "}";
+    "uniform samplerCube env; \
+    void main() { \
+        gl_FragColor = textureCube(env, gl_TexCoord[1].xyz);\
+    }";
 
 Scene::Scene(int width, int height, int maxTextureSize)
     : m_distExp(600)
@@ -561,6 +560,7 @@ Scene::Scene(int width, int height, int maxTextureSize)
     , m_updateAllCubemaps(true)
     , m_box(0)
     , m_vertexShader(0)
+	, m_environment(0)
     , m_environmentShader(0)
     , m_environmentProgram(0)
 {
@@ -570,6 +570,7 @@ Scene::Scene(int width, int height, int maxTextureSize)
     m_trackBalls[1] = TrackBall(0.005f, QVector3D(0, 0, 1), TrackBall::Sphere);
     m_trackBalls[2] = TrackBall(0.0f, QVector3D(0, 1, 0), TrackBall::Plane);
 
+	//渲染设置对话框
     m_renderOptions = new RenderOptionsDialog;
     m_renderOptions->move(20, 120);
     m_renderOptions->resize(m_renderOptions->sizeHint());
@@ -603,8 +604,6 @@ Scene::Scene(int width, int height, int maxTextureSize)
     m_timer->setInterval(20);
     connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
     m_timer->start();
-
-    m_time.start();
 }
 
 Scene::~Scene()
@@ -631,105 +630,113 @@ Scene::~Scene()
 
 void Scene::initGL()
 {
-    m_box = new GLRoundedBox(0.25f, 1.0f, 10);
+	//生成有圆角的立方体的顶点数组和索引数组并绑定
+    m_box = new GLRoundedBox(0.25f/*圆角大小*/, 1.0f/*缩放比*/, 20/*每一个圆角的定点数，定点数越多越圆润*/);
 
+	//编译顶点着色器
     m_vertexShader = new QGLShader(QGLShader::Vertex);
     m_vertexShader->compileSourceFile(QLatin1String(":/res/boxes/basic.vsh"));
 
-    QStringList list;
-    list << ":/res/boxes/cubemap_posx.jpg" << ":/res/boxes/cubemap_negx.jpg" << ":/res/boxes/cubemap_posy.jpg"
-         << ":/res/boxes/cubemap_negy.jpg" << ":/res/boxes/cubemap_posz.jpg" << ":/res/boxes/cubemap_negz.jpg";
-    m_environment = new GLTextureCube(list, qMin(1024, m_maxTextureSize));
-    m_environmentShader = new QGLShader(QGLShader::Fragment);
-    m_environmentShader->compileSourceCode(environmentShaderText);
-    m_environmentProgram = new QGLShaderProgram;
-    m_environmentProgram->addShader(m_vertexShader);
-    m_environmentProgram->addShader(m_environmentShader);
-    m_environmentProgram->link();
+	//天空盒渲染程序准备
+	{
+		QStringList list;
+		list << ":/res/boxes/cubemap_posx.jpg" << ":/res/boxes/cubemap_negx.jpg" << ":/res/boxes/cubemap_posy.jpg"
+			<< ":/res/boxes/cubemap_negy.jpg" << ":/res/boxes/cubemap_posz.jpg" << ":/res/boxes/cubemap_negz.jpg";
+		//初始化立方体贴图
+		m_environment = new GLTextureCube(list, qMin(1024, m_maxTextureSize));
+		//编译天空盒着色器
+		m_environmentShader = new QGLShader(QGLShader::Fragment);
+		m_environmentShader->compileSourceCode(environmentShaderText);
+		//创建天空盒可编程渲染管线程序
+		m_environmentProgram = new QGLShaderProgram;
+		//顶点着色器
+		m_environmentProgram->addShader(m_vertexShader);
+		//像素着色器
+		m_environmentProgram->addShader(m_environmentShader);
+		//链接程序
+		m_environmentProgram->link();
+	}
 
-    const int NOISE_SIZE = 128; // for a different size, B and BM in fbm.c must also be changed
-    m_noise = new GLTexture3D(NOISE_SIZE, NOISE_SIZE, NOISE_SIZE);
-    QRgb *data = new QRgb[NOISE_SIZE * NOISE_SIZE * NOISE_SIZE];
-    memset(data, 0, NOISE_SIZE * NOISE_SIZE * NOISE_SIZE * sizeof(QRgb));
-    QRgb *p = data;
-    float pos[3];
-    for (int k = 0; k < NOISE_SIZE; ++k) {
-        pos[2] = k * (0x20 / (float)NOISE_SIZE);
-        for (int j = 0; j < NOISE_SIZE; ++j) {
-            for (int i = 0; i < NOISE_SIZE; ++i) {
-                for (int byte = 0; byte < 4; ++byte) {
-                    pos[0] = (i + (byte & 1) * 16) * (0x20 / (float)NOISE_SIZE);
-                    pos[1] = (j + (byte & 2) * 8) * (0x20 / (float)NOISE_SIZE);
-                    *p |= (int)(128.0f * (noise3(pos) + 1.0f)) << (byte * 8);
-                }
-                ++p;
-            }
-        }
-    }
-    m_noise->load(NOISE_SIZE, NOISE_SIZE, NOISE_SIZE, data);
-    delete[] data;
+	//噪声数据
+	{
+		const int NOISE_SIZE = 128;
+		m_noise = new GLTexture3D(NOISE_SIZE, NOISE_SIZE, NOISE_SIZE);
+		QRgb *data = new QRgb[NOISE_SIZE * NOISE_SIZE * NOISE_SIZE];
+		memset(data, 0, NOISE_SIZE * NOISE_SIZE * NOISE_SIZE * sizeof(QRgb));
+		QRgb *p = data;
+		float pos[3];
+		for (int k = 0; k < NOISE_SIZE; ++k) {
+			pos[2] = k * (0x20 / (float)NOISE_SIZE);
+			for (int j = 0; j < NOISE_SIZE; ++j) {
+				for (int i = 0; i < NOISE_SIZE; ++i) {
+					for (int byte = 0; byte < 4; ++byte) {
+						pos[0] = (i + (byte & 1) * 16) * (0x20 / (float)NOISE_SIZE);
+						pos[1] = (j + (byte & 2) * 8) * (0x20 / (float)NOISE_SIZE);
+						*p |= (int)(128.0f * (noise3(pos) + 1.0f)) << (byte * 8);
+					}
+					++p;
+				}
+			}
+		}
+		m_noise->load(NOISE_SIZE, NOISE_SIZE, NOISE_SIZE, data);
+		delete[] data;
+	}
 
-    m_mainCubemap = new GLRenderTargetCube(512);
+	//所有的boxes设置
+	{
+		m_mainCubemap = new GLRenderTargetCube(512);
+		QStringList filter;
+		QList<QFileInfo> files;
+		//加载所有的png图片
+		m_currentTexture = 0;
+		filter = QStringList("*.png");
+		files = QDir(":/res/boxes/").entryInfoList(filter, QDir::Files | QDir::Readable);
+		foreach(QFileInfo file, files) {
+			GLTexture *texture = new GLTexture2D(file.absoluteFilePath(), qMin(256, m_maxTextureSize), qMin(256, m_maxTextureSize));
+			if (texture->failed()) {
+				delete texture;
+				continue;
+			}
+			m_textures << texture;
+			m_renderOptions->addTexture(file.baseName());
+		}
 
-    QStringList filter;
-    QList<QFileInfo> files;
+		//加载所有的像素着色器程序
+		m_currentShader = 0;
+		filter = QStringList("*.fsh");
+		files = QDir(":/res/boxes/").entryInfoList(filter, QDir::Files | QDir::Readable);
+		foreach(QFileInfo file, files) {
+			QGLShaderProgram *program = new QGLShaderProgram;
+			QGLShader* shader = new QGLShader(QGLShader::Fragment);
+			shader->compileSourceFile(file.absoluteFilePath());
+			// The program does not take ownership over the shaders, so store them in a vector so they can be deleted afterwards.
+			program->addShader(m_vertexShader);
+			program->addShader(shader);
+			if (!program->link()) {
+				qWarning("Failed to compile and link shader program");
+				qWarning("Vertex shader log:");
+				qWarning() << m_vertexShader->log();
+				qWarning() << "Fragment shader log ( file =" << file.absoluteFilePath() << "):";
+				qWarning() << shader->log();
+				qWarning("Shader program log:");
+				qWarning() << program->log();
 
-    // Load all .png files as textures
-    m_currentTexture = 0;
-    filter = QStringList("*.png");
-    files = QDir(":/res/boxes/").entryInfoList(filter, QDir::Files | QDir::Readable);
+				delete shader;
+				delete program;
+				continue;
+			}
 
-    foreach (QFileInfo file, files) {
-        GLTexture *texture = new GLTexture2D(file.absoluteFilePath(), qMin(256, m_maxTextureSize), qMin(256, m_maxTextureSize));
-        if (texture->failed()) {
-            delete texture;
-            continue;
-        }
-        m_textures << texture;
-        m_renderOptions->addTexture(file.baseName());
-    }
+			m_fragmentShaders << shader;
+			m_programs << program;
+			m_renderOptions->addShader(file.baseName());
 
-    if (m_textures.size() == 0)
-        m_textures << new GLTexture2D(qMin(64, m_maxTextureSize), qMin(64, m_maxTextureSize));
+			program->bind();
+			m_cubemaps << ((program->uniformLocation("env") != -1) ? new GLRenderTargetCube(qMin(256, m_maxTextureSize)) : 0);
+			program->release();
+		}
 
-    // Load all .fsh files as fragment shaders
-    m_currentShader = 0;
-    filter = QStringList("*.fsh");
-    files = QDir(":/res/boxes/").entryInfoList(filter, QDir::Files | QDir::Readable);
-    foreach (QFileInfo file, files) {
-        QGLShaderProgram *program = new QGLShaderProgram;
-        QGLShader* shader = new QGLShader(QGLShader::Fragment);
-        shader->compileSourceFile(file.absoluteFilePath());
-        // The program does not take ownership over the shaders, so store them in a vector so they can be deleted afterwards.
-        program->addShader(m_vertexShader);
-        program->addShader(shader);
-        if (!program->link()) {
-            qWarning("Failed to compile and link shader program");
-            qWarning("Vertex shader log:");
-            qWarning() << m_vertexShader->log();
-            qWarning() << "Fragment shader log ( file =" << file.absoluteFilePath() << "):";
-            qWarning() << shader->log();
-            qWarning("Shader program log:");
-            qWarning() << program->log();
-
-            delete shader;
-            delete program;
-            continue;
-        }
-
-        m_fragmentShaders << shader;
-        m_programs << program;
-        m_renderOptions->addShader(file.baseName());
-
-        program->bind();
-        m_cubemaps << ((program->uniformLocation("env") != -1) ? new GLRenderTargetCube(qMin(256, m_maxTextureSize)) : 0);
-        program->release();
-    }
-
-    if (m_programs.size() == 0)
-        m_programs << new QGLShaderProgram;
-
-    m_renderOptions->emitParameterChanged();
+		m_renderOptions->emitParameterChanged();
+	}
 }
 
 static void loadMatrix(const QMatrix4x4& m)
@@ -750,8 +757,10 @@ void Scene::renderBoxes(const QMatrix4x4 &view, int excludeBox)
 
     // If multi-texturing is supported, use three saplers.
     if (glActiveTexture) {
+		//设置texture0当前选择的纹理
         glActiveTexture(GL_TEXTURE0);
         m_textures[m_currentTexture]->bind();
+		//设置texture2为3d噪声
         glActiveTexture(GL_TEXTURE2);
         m_noise->bind();
         glActiveTexture(GL_TEXTURE1);
@@ -766,6 +775,7 @@ void Scene::renderBoxes(const QMatrix4x4 &view, int excludeBox)
     viewRotation(3, 0) = viewRotation(3, 1) = viewRotation(3, 2) = 0.0f;
     viewRotation(0, 3) = viewRotation(1, 3) = viewRotation(2, 3) = 0.0f;
     viewRotation(3, 3) = 1.0f;
+	//viewRotation.setToIdentity();
     loadMatrix(viewRotation);
     glScalef(20.0f, 20.0f, 20.0f);
 
@@ -773,9 +783,9 @@ void Scene::renderBoxes(const QMatrix4x4 &view, int excludeBox)
     if (glActiveTexture) {
         m_environment->bind();
         m_environmentProgram->bind();
-        m_environmentProgram->setUniformValue("tex", GLint(0));
+        //m_environmentProgram->setUniformValue("tex", GLint(0));
         m_environmentProgram->setUniformValue("env", GLint(1));
-        m_environmentProgram->setUniformValue("noise", GLint(2));
+        //m_environmentProgram->setUniformValue("noise", GLint(2));
         m_box->draw();
         m_environmentProgram->release();
         m_environment->unbind();
@@ -864,36 +874,49 @@ void Scene::setStates()
 {
     //glClearColor(0.25f, 0.25f, 0.5f, 1.0f);
 
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_LIGHTING);
-    //glEnable(GL_COLOR_MATERIAL);
-    glEnable(GL_TEXTURE_2D);
-    glEnable(GL_NORMALIZE);
+	//初始化openl功能开关
+    glEnable(GL_DEPTH_TEST);	//开启深度测试
+    glEnable(GL_CULL_FACE);		//开启遮挡剔除
+    glEnable(GL_LIGHTING);		//开启灯源
+    glEnable(GL_COLOR_MATERIAL);//开启图形（材料）根据光线的照耀进行反射。
+    glEnable(GL_TEXTURE_2D);	//开启二维文理
+    glEnable(GL_NORMALIZE);		//开启法向量
 
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
+	//初始化投影矩阵和视图矩阵
+	{
+		//设置投影矩阵为当前矩阵
+		glMatrixMode(GL_PROJECTION);
+		//拷贝投影矩阵放入栈顶
+		glPushMatrix();
+		//把栈顶矩阵替换为单位矩阵
+		glLoadIdentity();
 
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-
-    setLights();
+		//设置视图矩阵为当前矩阵
+		glMatrixMode(GL_MODELVIEW);
+		//拷贝视图矩阵放入栈顶
+		glPushMatrix();
+		//把栈顶矩阵替换为单位矩阵
+		glLoadIdentity();
+	}
 
     float materialSpecular[] = {0.5f, 0.5f, 0.5f, 1.0f};
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, materialSpecular);
-    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 32.0f);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 20.0f);
 }
 
-void Scene::setLights()
+void Scene::setLights(QGLShaderProgram* program)
 {
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-    //float lightColour[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    float lightDir[] = {0.0f, 0.0f, 1.0f, 0.0f};
-    //glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColour);
-    //glLightfv(GL_LIGHT0, GL_SPECULAR, lightColour);
-    glLightfv(GL_LIGHT0, GL_POSITION, lightDir);
+	QVector4D lightColour(1.0f, 1.0f, 1.0f, 1.0f);
+	QVector4D lightDir(0.0f, 0.0f, 1.0f, 0.0f);
+//     glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColour);
+//     glLightfv(GL_LIGHT0, GL_SPECULAR, lightColour);
+//     glLightfv(GL_LIGHT0, GL_POSITION, lightDir);
+	program->setUniformValue("light_position", lightDir);
+	program->setUniformValue("light_specular", lightColour);
+	program->setUniformValue("light_ambient", lightColour);
+	program->setUniformValue("light_diffuse", lightColour);
+
     glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, 1.0f);
     glEnable(GL_LIGHT0);
 }
@@ -910,9 +933,12 @@ void Scene::defaultStates()
     glDisable(GL_LIGHT0);
     glDisable(GL_NORMALIZE);
 
-    glMatrixMode(GL_MODELVIEW);
+	//设置投影矩阵为当前矩阵
+    //glMatrixMode(GL_MODELVIEW);
+	//弹出一个矩阵
     glPopMatrix();
 
+	//设置视图矩阵为当前矩阵
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
 
@@ -979,35 +1005,41 @@ void Scene::renderCubemaps()
     m_updateAllCubemaps = false;
 }
 
-void Scene::drawBackground(QPainter *painter, const QRectF &)
+void Scene::drawBackground(QPainter *painter, const QRectF &rect)
 {
     float width = float(painter->device()->width());
     float height = float(painter->device()->height());
 
-    painter->beginNativePainting();
-    setStates();
+	//使用opengl绘制3d背景
+	{
+		//准备绘制
+		painter->beginNativePainting();
+		//初始化坐标系统参数
+		setStates();
 
-    if (m_dynamicCubemap)
-        renderCubemaps();
+		if (m_dynamicCubemap);
+			renderCubemaps();
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glMatrixMode(GL_PROJECTION);
-    qgluPerspective(60.0, width / height, 0.01, 15.0);
+		glMatrixMode(GL_PROJECTION);
+		qgluPerspective(60.0, width / height, 0.01, 15.0);
 
-    glMatrixMode(GL_MODELVIEW);
+		glMatrixMode(GL_MODELVIEW);
 
-    QMatrix4x4 view;
-    view.rotate(m_trackBalls[2].rotation());
-	view.translate(QVector3D(0, 0,-2.0f * std::exp(m_distExp / 1200.0f)));
-    //view(2, 3) -= 2.0f * std::exp(m_distExp / 1200.0f);
-    renderBoxes(view);
+		QMatrix4x4 view;
+		view.rotate(m_trackBalls[2].rotation());
+		view.translate(QVector3D(0, 0, -2.0f * std::exp(m_distExp / 1200.0f)));
+		//view(2, 3) -= 2.0f * std::exp(m_distExp / 1200.0f);
+		renderBoxes(view);
 
-    defaultStates();
-    ++m_frame;
-
-    painter->endNativePainting();
-}
+		//恢复渲染前的opengl坐标状态(清除setStates中的设置)
+		defaultStates();
+		++m_frame;
+		//结束绘制
+		painter->endNativePainting();
+	}
+  }
 
 QPointF Scene::pixelPosToViewPos(const QPointF& p)
 {

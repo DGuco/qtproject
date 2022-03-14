@@ -170,10 +170,8 @@ GLTextureCube::GLTextureCube(int size)
 
 GLTextureCube::GLTextureCube(const QStringList& fileNames, int size)
 {
-    // TODO: Add error handling.
-
+	glGenTextures(1, &m_texture);
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_texture);
-
     int index = 0;
     foreach (QString file, fileNames) {
         QImage image(file);
@@ -183,25 +181,15 @@ GLTextureCube::GLTextureCube(const QStringList& fileNames, int size)
         }
 
         image = image.convertToFormat(QImage::Format_ARGB32);
-
-        //qDebug() << "Image size:" << image.width() << "x" << image.height();
         if (size <= 0)
             size = image.width();
         if (size != image.width() || size != image.height())
             image = image.scaled(size, size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 
-        // Works on x86, so probably works on all little-endian systems.
-        // Does it work on big-endian systems?
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, 0, 4, image.width(), image.height(), 0,GL_BGRA, GL_UNSIGNED_BYTE, image.bits());
 
         if (++index == 6)
             break;
-    }
-
-    // Clear remaining faces.
-    while (index < 6) {
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, 0, 4, size, size, 0,GL_BGRA, GL_UNSIGNED_BYTE, 0);
-        ++index;
     }
 
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -209,8 +197,6 @@ GLTextureCube::GLTextureCube(const QStringList& fileNames, int size)
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    //glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    //glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_GENERATE_MIPMAP, GL_TRUE);
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 
