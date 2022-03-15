@@ -83,11 +83,11 @@ void MainWidget::timerEvent(QTimerEvent *event)
 
 void MainWidget::initializeGL()
 {
+	geometries = new GeometryEngine;
     initializeOpenGLFunctions();
     glClearColor(0, 0, 0, 1);
     initShaders();
     initTextures();
-    geometries = new GeometryEngine;
     //启动刷新定时器
     timer.start(1000 / ACTION_FPS, this);
 }
@@ -111,6 +111,10 @@ void MainWidget::initShaders()
 
 	if (!cubeProgram.link())
 		close();
+
+	geometries->setCubeGLData(&cubeProgram);
+	geometries->setLightingGLData(&lightinhProgram);
+	
 }
 void MainWidget::initTextures()
 {

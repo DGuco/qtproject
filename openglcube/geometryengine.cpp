@@ -89,39 +89,44 @@ void GeometryEngine::initCubeGeometry()
     indexBuf.allocate(indices, 36 * sizeof(GLushort));
 }
 
-void GeometryEngine::drawCubeGeometry(QOpenGLShaderProgram *program)
-{   
-    quintptr offset = 0;
+void GeometryEngine::setCubeGLData(QOpenGLShaderProgram *program)
+{
+	quintptr offset = 0;
 
 	//告诉opengl读取顶点坐标缓存数组的格式:类型float,每个数据大小sizeof(VertexData),
 	//顶点坐标在每个数据中的偏移0,数据大小3个float,
-    int vertexLocation = program->attributeLocation("a_position");
-    program->enableAttributeArray(vertexLocation);
-    program->setAttributeBuffer(vertexLocation, GL_FLOAT, offset, 3, sizeof(VertexData));
+	int vertexLocation = program->attributeLocation("a_position");
+	program->enableAttributeArray(vertexLocation);
+	program->setAttributeBuffer(vertexLocation, GL_FLOAT, offset, 3, sizeof(VertexData));
 
 	//告诉opengl读取纹理坐标缓存数组的格式:类型float,每个数据大小sizeof(VertexData),
 	//纹理坐标在每个数据中的偏移sizeof(QVector3D),数据大小2个float,
 	offset += sizeof(QVector3D);
-    int texcoordLocation = program->attributeLocation("a_texcoord");
-    program->enableAttributeArray(texcoordLocation);
-    program->setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 2, sizeof(VertexData));
+	int texcoordLocation = program->attributeLocation("a_texcoord");
+	program->enableAttributeArray(texcoordLocation);
+	program->setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 2, sizeof(VertexData));
 
 	offset += sizeof(QVector2D);
 	int normalLocation = program->attributeLocation("a_normal");
 	program->enableAttributeArray(normalLocation);
 	program->setAttributeBuffer(normalLocation, GL_FLOAT, offset, 3, sizeof(VertexData));
+}
+void GeometryEngine::setLightingGLData(QOpenGLShaderProgram *program)
+{
+	quintptr offset = 0;
+	int vertexLocation = program->attributeLocation("a_position");
+	program->enableAttributeArray(vertexLocation);
+	program->setAttributeBuffer(vertexLocation, GL_FLOAT, offset, 3, sizeof(VertexData));
+}
 
+void GeometryEngine::drawCubeGeometry(QOpenGLShaderProgram *program)
+{  
 	// 使用索引缓冲数组渲染三角形
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, 0);  
 }
 
 void GeometryEngine::drawLighting(QOpenGLShaderProgram *program)
 {
-	quintptr offset = 0;
-	int vertexLocation = program->attributeLocation("a_position");
-	program->enableAttributeArray(vertexLocation);
-	program->setAttributeBuffer(vertexLocation, GL_FLOAT, offset, 3, sizeof(VertexData));
-
 	// 使用索引缓冲数组渲染三角形
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, 0);
 }

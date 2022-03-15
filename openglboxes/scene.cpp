@@ -544,12 +544,6 @@ void ItemDialog::mouseDoubleClickEvent(QMouseEvent *event)
 //                                    Scene                                   //
 //============================================================================//
 
-const static char environmentShaderText[] =
-    "uniform samplerCube env; \
-    void main() { \
-        gl_FragColor = textureCube(env, gl_TexCoord[1].xyz);\
-    }";
-
 Scene::Scene(int width, int height, int maxTextureSize)
     : m_distExp(600)
     , m_frame(0)
@@ -646,7 +640,7 @@ void Scene::initGL()
 		m_environment = new GLTextureCube(list, qMin(1024, m_maxTextureSize));
 		//编译天空盒着色器
 		m_environmentShader = new QGLShader(QGLShader::Fragment);
-		m_environmentShader->compileSourceCode(environmentShaderText);
+		m_environmentShader->compileSourceFile(QLatin1String(":/res/boxes/skybox.fsh"));
 		//创建天空盒可编程渲染管线程序
 		m_environmentProgram = new QGLShaderProgram;
 		//顶点着色器

@@ -18,6 +18,8 @@ public:
     GeometryEngine();
     virtual ~GeometryEngine();
 
+	void setCubeGLData(QOpenGLShaderProgram *program);
+	void setLightingGLData(QOpenGLShaderProgram *program);
     void drawCubeGeometry(QOpenGLShaderProgram *program);
 	void drawLighting(QOpenGLShaderProgram *program);
 

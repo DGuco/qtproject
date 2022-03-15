@@ -1,35 +1,24 @@
-#version 330 core
-//像素着色器
+varying vec3 position, normal;
+varying vec4 specular, ambient, diffuse, lightDirection;
+
+attribute vec4 a_position;
+attribute vec2 a_texcoord;
+attribute vec3 a_normal;
 
 uniform mat4 view;
-uniform vec4 light_position;
-uniform vec4 light_specular;
-uniform vec4 light_ambient;
-uniform vec4 light_diffuse;
-
-layout(location = 0) in vec3 a_position;   //空间坐标
-layout(location = 1) in vec2 a_texcoord;   //纹理坐标
-layout(location = 2) in vec3 a_normal;	    //法线向量
-
-out vec3 position;
-out vec3 normal;
-out vec4 specular;
-out vec4 ambient;
-out vec4 diffuse;
-out vec4 lightDirection;
 
 void main()
-{	
-    gl_TexCoord[0] = gl_MultiTexCoord0;
-    gl_TexCoord[1] = gl_Vertex;
-    specular = light_specular;
-    ambient = light_ambient;
-    diffuse = light_diffuse;
-    lightDirection = view * light_position;
+{
+	gl_TexCoord[0] = gl_MultiTexCoord0;
+	gl_TexCoord[1] = gl_Vertex;
+	specular = gl_LightSource[0].specular;
+	ambient = gl_LightSource[0].ambient;
+	diffuse = gl_LightSource[0].diffuse;
+	lightDirection = view * gl_LightSource[0].position;
 
-    normal = gl_NormalMatrix * gl_Normal;
-    position = (gl_ModelViewMatrix * gl_Vertex).xyz;
+	normal = gl_NormalMatrix * gl_Normal;
+	position = (gl_ModelViewMatrix * gl_Vertex).xyz;
 
-    gl_FrontColor = gl_Color;
-    gl_Position = ftransform();
+	gl_FrontColor = gl_Color;
+	gl_Position = ftransform();
 }
