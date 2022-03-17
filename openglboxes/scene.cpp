@@ -700,6 +700,10 @@ void Scene::initGL()
 		filter = QStringList("*.fsh");
 		files = QDir(":/res/boxes/").entryInfoList(filter, QDir::Files | QDir::Readable);
 		foreach(QFileInfo file, files) {
+			if(file.fileName().indexOf("skybox") != -1)
+			{
+				continue;
+			}
 			QGLShaderProgram *program = new QGLShaderProgram;
 			QGLShader* shader = new QGLShader(QGLShader::Fragment);
 			shader->compileSourceFile(file.absoluteFilePath());
