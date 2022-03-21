@@ -625,8 +625,7 @@ Scene::~Scene()
 void Scene::initGL()
 {
 	//生成有圆角的立方体的顶点数组和索引数组并绑定
-    m_box = new GLRoundedBox(0.25f/*圆角大小*/, 1.0f/*缩放比*/, 20/*每一个圆角的定点数，定点数越多越圆润*/);
-
+    m_box = new GLRoundedBox(0.25f/*圆角大小*/, 1.0f/*缩放比*/, 20/*每一个圆角的定点数，顶点数越多越圆润*/);
 	//编译顶点着色器
     m_vertexShader = new QGLShader(QGLShader::Vertex);
     m_vertexShader->compileSourceFile(QLatin1String(":/res/boxes/basic.vsh"));
@@ -784,7 +783,7 @@ void Scene::renderBoxes(const QMatrix4x4 &view, int excludeBox)
         //m_environmentProgram->setUniformValue("tex", GLint(0));
         m_environmentProgram->setUniformValue("env", GLint(1));
         //m_environmentProgram->setUniformValue("noise", GLint(2));
-        m_box->draw();
+        m_box->draw(m_environmentProgram);
         m_environmentProgram->release();
         m_environment->unbind();
     }
@@ -819,7 +818,7 @@ void Scene::renderBoxes(const QMatrix4x4 &view, int excludeBox)
         m_programs[i]->setUniformValue("noise", GLint(2));
         m_programs[i]->setUniformValue("view", view);
         m_programs[i]->setUniformValue("invView", invView);
-        m_box->draw();
+        m_box->draw(m_programs[i]);
         m_programs[i]->release();
 
         if (glActiveTexture) {
@@ -849,7 +848,7 @@ void Scene::renderBoxes(const QMatrix4x4 &view, int excludeBox)
         m_programs[m_currentShader]->setUniformValue("noise", GLint(2));
         m_programs[m_currentShader]->setUniformValue("view", view);
         m_programs[m_currentShader]->setUniformValue("invView", invView);
-        m_box->draw();
+        m_box->draw(m_programs[m_currentShader]);
         m_programs[m_currentShader]->release();
 
         if (glActiveTexture) {

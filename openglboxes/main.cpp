@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 {
     QApplication app(argc, argv);
 
-    if ((QGLFormat::openGLVersionFlags() & QGLFormat::OpenGL_Version_1_5) == 0) {
+    if ((QGLFormat::openGLVersionFlags() & QGLFormat::OpenGL_Version_3_3) == 0) {
         QMessageBox::critical(0, "OpenGL features missing",
             "OpenGL version 1.5 or higher is required to run this demo.\n"
             "The program will now exit.");
@@ -101,7 +101,9 @@ int main(int argc, char **argv)
 //         "This demo can be GPU and CPU intensive and may\n"
 //         "work poorly or not at all on your system.");
 
-    widget->makeCurrent(); // The current context must be set before calling Scene's constructor
+	// The current context must be set before calling Scene's constructor
+    widget->makeCurrent();
+
     Scene scene(1024, 768, maxTextureSize);
     GraphicsView view;
     view.setViewport(widget);

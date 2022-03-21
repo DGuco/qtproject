@@ -6,6 +6,7 @@
 
 #include <QtWidgets>
 #include <QtOpenGL>
+#include <QOpenGLBuffer>
 
 #include "glbuffers.h"
 
@@ -21,7 +22,7 @@ public:
     {
     }
 
-    virtual void draw()
+    virtual void draw(QGLShaderProgram *program)
     {
         if (failed())
             return;
@@ -30,10 +31,10 @@ public:
         if (sizeof(TIndex) == sizeof(char)) type = GL_UNSIGNED_BYTE;
         if (sizeof(TIndex) == sizeof(short)) type = GL_UNSIGNED_SHORT;
 
-        m_vb.bind();
+        m_vb.bind(program);
         m_ib.bind();
         glDrawElements(GL_TRIANGLES, m_ib.length(), type, BUFFER_OFFSET(0));
-        m_vb.unbind();
+        m_vb.unbind(program);
         m_ib.unbind();
     }
 

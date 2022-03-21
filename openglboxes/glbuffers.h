@@ -6,6 +6,8 @@
 
 #include <QtWidgets>
 #include <QtOpenGL>
+#include <QOpenGLFunctions>
+#include <QGLShaderProgram>
 
 #define BUFFER_OFFSET(i) ((char*)0 + (i))
 #define SIZE_OF_MEMBER(cls, member) sizeof(static_cast<cls *>(0)->member)
@@ -151,7 +153,7 @@ VertexDescription Vertex::description[] = {
 };
 */
 template<class T>
-class GLVertexBuffer
+class GLVertexBuffer : public QOpenGLFunctions
 {
 public:
     GLVertexBuffer(int length, const T *data = 0, int mode = GL_STATIC_DRAW)
@@ -165,21 +167,27 @@ public:
         glGenBuffers(1, &m_buffer);
         glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
         glBufferData(GL_ARRAY_BUFFER, (m_length = length) * sizeof(T), data, mode);
-    }
+
+		m_glbuffer.create();
+		m_glbuffer.bind();
+		m_glbuffer.allocate(data, (m_length = length) * sizeof(T));
+	}
 
     ~GLVertexBuffer()
     {
         GLBUFFERS_ASSERT_OPENGL("GLVertexBuffer::~GLVertexBuffer", glDeleteBuffers, return)
 
         glDeleteBuffers(1, &m_buffer);
+		m_glbuffer.destroy();
     }
 
-    void bind()
+    void bind(QGLShaderProgram *program)
     {
         GLBUFFERS_ASSERT_OPENGL("GLVertexBuffer::bind", glBindBuffer, return)
-
-        glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
-        for (VertexDescription *desc = T::description; desc->field != VertexDescription::Null; ++desc) {
+        
+		glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
+        for (VertexDescription *desc = T::description; desc->field != VertexDescription::Null; ++desc) 
+		{
             switch (desc->field) {
             case VertexDescription::Position:
                 glVertexPointer(desc->count, desc->type, sizeof(T), BUFFER_OFFSET(desc->offset));
@@ -201,9 +209,24 @@ public:
                 break;
             }
         }
+
+		int offset = 0;
+		int vertexLocation = program->attributeLocation("a_position");
+		program->enableAttributeArray(vertexLocation);
+		program->setAttributeBuffer(vertexLocation, GL_FLOAT, offset, 3, sizeof(T));
+
+		offset += sizeof(QVector3D);
+		int texcoordLocation = program->attributeLocation("a_texcoord");
+		program->enableAttributeArray(texcoordLocation);
+		program->setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 2, sizeof(T));
+
+		offset += sizeof(QVector2D);
+		int normalLocation = program->attributeLocation("a_normal");
+		program->enableAttributeArray(normalLocation);
+		program->setAttributeBuffer(normalLocation, GL_FLOAT, offset, 3, sizeof(T));
     }
 
-    void unbind()
+    void unbind(QGLShaderProgram *program)
     {
         GLBUFFERS_ASSERT_OPENGL("GLVertexBuffer::unbind", glBindBuffer, return)
 
@@ -255,13 +278,14 @@ public:
     }
 
 private:
+	QOpenGLBuffer m_glbuffer;
     int m_length, m_mode;
     GLuint m_buffer;
     bool m_failed;
 };
 
 template<class T>
-class GLIndexBuffer
+class GLIndexBuffer : public QOpenGLFunctions
 {
 public:
     GLIndexBuffer(int length, const T *data = 0, int mode = GL_STATIC_DRAW)
@@ -275,13 +299,18 @@ public:
         glGenBuffers(1, &m_buffer);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_buffer);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, (m_length = length) * sizeof(T), data, mode);
-    }
+
+		m_glbuffer.create();
+		m_glbuffer.bind();
+		m_glbuffer.allocate(data, (m_length = length) * sizeof(T));
+	}
 
     ~GLIndexBuffer()
     {
         GLBUFFERS_ASSERT_OPENGL("GLIndexBuffer::~GLIndexBuffer", glDeleteBuffers, return)
 
         glDeleteBuffers(1, &m_buffer);
+		m_glbuffer.destroy();
     }
 
     void bind()
@@ -324,6 +353,7 @@ public:
     }
 
 private:
+	QOpenGLBuffer m_glbuffer;
     int m_length, m_mode;
     GLuint m_buffer;
     bool m_failed;
