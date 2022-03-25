@@ -330,7 +330,8 @@ void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     if (dt < 500)
         glScalef(dt / 500.0f, dt / 500.0f, dt / 500.0f);
 
-    for (int dir = 0; dir < 3; ++dir) {
+    for (int dir = 0; dir < 3; ++dir) 
+	{
         glColor4f(1.0f, 1.0f, 1.0f, 1.0);
 
         glBegin(GL_TRIANGLE_STRIP);
