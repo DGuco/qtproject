@@ -23,6 +23,5 @@ void main()
 
 	gl_FrontColor = gl_Color;
 
-	//gl_Position =  projection_mat * modelview_mat * vec4(a_position, 1);
-	gl_Position = ftransform();
+	gl_Position =  projection_mat * modelview_mat * vec4(a_position, 1);
 }
