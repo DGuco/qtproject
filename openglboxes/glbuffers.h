@@ -186,29 +186,29 @@ public:
         GLBUFFERS_ASSERT_OPENGL("GLVertexBuffer::bind", glBindBuffer, return)
         
 		glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
-//         for (VertexDescription *desc = T::description; desc->field != VertexDescription::Null; ++desc) 
-// 		{
-//             switch (desc->field) {
-//             case VertexDescription::Position:
-//                 glVertexPointer(desc->count, desc->type, sizeof(T), BUFFER_OFFSET(desc->offset));
-//                 glEnableClientState(GL_VERTEX_ARRAY);
-//                 break;
-//             case VertexDescription::TexCoord:
-//                 glTexCoordPointer(desc->count, desc->type, sizeof(T), BUFFER_OFFSET(desc->offset));
-//                 glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-//                 break;
-//             case VertexDescription::Normal:
-//                 glNormalPointer(desc->type, sizeof(T), BUFFER_OFFSET(desc->offset));
-//                 glEnableClientState(GL_NORMAL_ARRAY);
-//                 break;
-//             case VertexDescription::Color:
-//                 glColorPointer(desc->count, desc->type, sizeof(T), BUFFER_OFFSET(desc->offset));
-//                 glEnableClientState(GL_COLOR_ARRAY);
-//                 break;
-//             default:
-//                 break;
-//             }
-//         }
+        for (VertexDescription *desc = T::description; desc->field != VertexDescription::Null; ++desc) 
+		{
+            switch (desc->field) {
+            case VertexDescription::Position:
+                glVertexPointer(desc->count, desc->type, sizeof(T), BUFFER_OFFSET(desc->offset));
+                glEnableClientState(GL_VERTEX_ARRAY);
+                break;
+            case VertexDescription::TexCoord:
+                glTexCoordPointer(desc->count, desc->type, sizeof(T), BUFFER_OFFSET(desc->offset));
+                glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                break;
+            case VertexDescription::Normal:
+                glNormalPointer(desc->type, sizeof(T), BUFFER_OFFSET(desc->offset));
+                glEnableClientState(GL_NORMAL_ARRAY);
+                break;
+            case VertexDescription::Color:
+                glColorPointer(desc->count, desc->type, sizeof(T), BUFFER_OFFSET(desc->offset));
+                glEnableClientState(GL_COLOR_ARRAY);
+                break;
+            default:
+                break;
+            }
+        }
 
 		int offset = 0;
 		int vertexLocation = program->attributeLocation("a_position");

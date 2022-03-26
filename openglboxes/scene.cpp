@@ -1051,6 +1051,8 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
 		projection.perspective(60.0, width / height, 0.01, 15.0);
 
 		QMatrix4x4 view;
+		view.lookAt(QVector3D(0.0, 0.0, 1.0), QVector3D(0, 0, -15), QVector3D(0, 1, 0));
+
 		view.rotate(m_trackBalls[2].rotation());
 		view.translate(QVector3D(0, 0, -2.0f * std::exp(m_distExp / 1200.0f)));
 		//view(2, 3) -= 2.0f * std::exp(m_distExp / 1200.0f);
