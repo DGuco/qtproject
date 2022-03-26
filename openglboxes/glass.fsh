@@ -3,7 +3,7 @@ varying vec4 specular, ambient, diffuse, lightDirection;
 
 uniform sampler2D tex;
 uniform samplerCube env;
-uniform mat4 view;
+uniform mat4 view_mat;
 
 // Some arbitrary values
 // Arrays don't work here on glsl < 120, apparently.
@@ -17,7 +17,7 @@ void main()
 {
     vec3 N = normalize(normal);
     vec3 I = -normalize(position);
-    mat3 V = mat3(view[0].xyz, view[1].xyz, view[2].xyz);
+    mat3 V = mat3(view_mat[0].xyz, view_mat[1].xyz, view_mat[2].xyz);
     float IdotN = dot(I, N);
     float scales[6];
     vec3 C[6];

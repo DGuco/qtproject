@@ -866,7 +866,7 @@ void Scene::renderBoxes(const QMatrix4x4 &view, const QMatrix4x4 &projection, in
         m_programs[m_currentShader]->setUniformValue("tex", GLint(0));
         m_programs[m_currentShader]->setUniformValue("env", GLint(1));
         m_programs[m_currentShader]->setUniformValue("noise", GLint(2));
-        m_programs[m_currentShader]->setUniformValue("view", view);
+        m_programs[m_currentShader]->setUniformValue("view_mat", view);
         m_programs[m_currentShader]->setUniformValue("invView", invView);
 		m_programs[m_currentShader]->setUniformValue("projection_mat", projection);
 		m_programs[m_currentShader]->setUniformValue("modelview_mat", cubemodelView);
@@ -898,7 +898,7 @@ void Scene::setStates()
     glEnable(GL_DEPTH_TEST);	//开启深度测试
     glEnable(GL_CULL_FACE);		//开启遮挡剔除
     glEnable(GL_LIGHTING);		//开启灯源
-    glEnable(GL_COLOR_MATERIAL);//开启图形（材料）根据光线的照耀进行反射。
+    //glEnable(GL_COLOR_MATERIAL);//开启图形（材料）根据光线的照耀进行反射。
     glEnable(GL_TEXTURE_2D);	//开启二维文理
     glEnable(GL_NORMALIZE);		//开启法向量
 
@@ -917,6 +917,8 @@ void Scene::setStates()
 		glPushMatrix();
 		//把栈顶矩阵替换为单位矩阵
 		glLoadIdentity();
+
+		setLights(NULL);
 	}
 
     float materialSpecular[] = {0.5f, 0.5f, 0.5f, 1.0f};
@@ -932,11 +934,15 @@ void Scene::setLights(QGLShaderProgram* program)
 //     glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColour);
 //     glLightfv(GL_LIGHT0, GL_SPECULAR, lightColour);
 //     glLightfv(GL_LIGHT0, GL_POSITION, lightDir);
-	program->setUniformValue("light_position", lightDir);
-	program->setUniformValue("light_specular", lightColour);
-	program->setUniformValue("light_ambient", lightColour);
-	program->setUniformValue("light_diffuse", lightColour);
-
+	if (program)
+	{
+		program->setUniformValue("light_position", lightDir);
+		program->setUniformValue("light_specular", lightColour);
+		program->setUniformValue("light_ambient", lightColour);
+		program->setUniformValue("light_diffuse", lightColour);
+	}
+	float lightDirar[] = { 0.0f, 0.0f, 1.0f, 0.0f };
+	glLightfv(GL_LIGHT0, GL_POSITION, lightDirar);
     glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, 1.0f);
     glEnable(GL_LIGHT0);
 }
@@ -1056,6 +1062,7 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
 		view.rotate(m_trackBalls[2].rotation());
 		view.translate(QVector3D(0, 0, -2.0f * std::exp(m_distExp / 1200.0f)));
 		//view(2, 3) -= 2.0f * std::exp(m_distExp / 1200.0f);
+
 		renderBoxes(view, projection);
 
 		//恢复渲染前的opengl坐标状态(清除setStates中的设置)
