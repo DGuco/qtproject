@@ -748,9 +748,10 @@ static void loadMatrix(const QMatrix4x4& m)
 
 // If one of the boxes should not be rendered, set excludeBox to its index.
 // If the main box should not be rendered, set excludeBox to -1.
-void Scene::renderBoxes(const QMatrix4x4 &view, const QMatrix4x4 &projection, int excludeBox)
+void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view_mat, const QMatrix4x4 &model_mat, int excludeBox)
 {
-    QMatrix4x4 invView = view.inverted();
+	QMatrix4x4 lightview = view_mat * model_mat;
+    QMatrix4x4 invView = (view_mat * model_mat).inverted();
 
     // If multi-texturing is supported, use three saplers.
     if (glActiveTexture) {
@@ -768,7 +769,7 @@ void Scene::renderBoxes(const QMatrix4x4 &view, const QMatrix4x4 &projection, in
     glDisable(GL_LIGHTING);
     glDisable(GL_CULL_FACE);
 
-    QMatrix4x4 viewRotation(view);
+    QMatrix4x4 viewRotation(view_mat * model_mat);
     viewRotation(3, 0) = viewRotation(3, 1) = viewRotation(3, 2) = 0.0f;
     viewRotation(0, 3) = viewRotation(1, 3) = viewRotation(2, 3) = 0.0f;
     viewRotation(3, 3) = 1.0f;
@@ -776,26 +777,25 @@ void Scene::renderBoxes(const QMatrix4x4 &view, const QMatrix4x4 &projection, in
     loadMatrix(viewRotation);
     glScalef(20.0f, 20.0f, 20.0f);
 
-	QMatrix4x4 modelviewmatrix(view);
-	modelviewmatrix(3, 0) = modelviewmatrix(3, 1) = modelviewmatrix(3, 2) = 0.0f;
-	modelviewmatrix(0, 3) = modelviewmatrix(1, 3) = modelviewmatrix(2, 3) = 0.0f;
-	modelviewmatrix(3, 3) = 1.0f;
-	modelviewmatrix.scale(20.0f, 20.0f, 20.0f);
-
     // Don't render the environment if the environment texture can't be set for the correct sampler.
     if (glActiveTexture) {
-        m_environment->bind();
+		QMatrix4x4 skymodel_mat(model_mat);
+		skymodel_mat.scale(20.0f, 20.0f, 20.0f);
+
+		m_environment->bind();
         m_environmentProgram->bind();
         m_environmentProgram->setUniformValue("env", GLint(1));
-		m_environmentProgram->setUniformValue("view_mat", view);
-		m_environmentProgram->setUniformValue("projection_mat", projection);
-		m_environmentProgram->setUniformValue("modelview_mat", modelviewmatrix);
+		m_environmentProgram->setUniformValue("projection_mat", projection_mat);
+		m_environmentProgram->setUniformValue("view_mat", view_mat);
+		m_environmentProgram->setUniformValue("model_mat", skymodel_mat);
+		m_environmentProgram->setUniformValue("lightview", lightview);
+
         m_box->draw(m_environmentProgram);
         m_environmentProgram->release();
         m_environment->unbind();
     }
 
-    loadMatrix(view);
+    loadMatrix(view_mat * model_mat);
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_LIGHTING);
@@ -815,7 +815,7 @@ void Scene::renderBoxes(const QMatrix4x4 &view, const QMatrix4x4 &projection, in
 
 		QMatrix4x4 cubemodelView;
 		cubemodelView.rotate(m_trackBalls[1].rotation());
-		cubemodelView = view * cubemodelView;
+		cubemodelView = model_mat * cubemodelView;
 		cubemodelView.rotate(360.0f * i / m_programs.size(), 0.0f, 0.0f, 1.0f);
 		cubemodelView.translate(2.0f, 0.0f, 0.0f);
 		cubemodelView.scale(0.3f, 0.6f, 0.6f);
@@ -830,10 +830,12 @@ void Scene::renderBoxes(const QMatrix4x4 &view, const QMatrix4x4 &projection, in
         m_programs[i]->setUniformValue("tex", GLint(0));
         m_programs[i]->setUniformValue("env", GLint(1));
         m_programs[i]->setUniformValue("noise", GLint(2));
-        m_programs[i]->setUniformValue("view_mat", view);
         m_programs[i]->setUniformValue("invView", invView);
-		m_programs[i]->setUniformValue("projection_mat", projection);
-		m_programs[i]->setUniformValue("modelview_mat", cubemodelView);
+		m_programs[i]->setUniformValue("projection_mat", projection_mat);
+		m_programs[i]->setUniformValue("view_mat", view_mat);
+		m_programs[i]->setUniformValue("model_mat", cubemodelView);
+		m_programs[i]->setUniformValue("lightview", lightview);
+
         m_box->draw(m_programs[i]);
         m_programs[i]->release();
 
@@ -853,7 +855,7 @@ void Scene::renderBoxes(const QMatrix4x4 &view, const QMatrix4x4 &projection, in
 
 		QMatrix4x4 cubemodelView;
 		cubemodelView.rotate(m_trackBalls[0].rotation());
-		cubemodelView = view * cubemodelView;
+		cubemodelView = model_mat * cubemodelView;
 
         if (glActiveTexture) {
             if (m_dynamicCubemap)
@@ -866,10 +868,11 @@ void Scene::renderBoxes(const QMatrix4x4 &view, const QMatrix4x4 &projection, in
         m_programs[m_currentShader]->setUniformValue("tex", GLint(0));
         m_programs[m_currentShader]->setUniformValue("env", GLint(1));
         m_programs[m_currentShader]->setUniformValue("noise", GLint(2));
-        m_programs[m_currentShader]->setUniformValue("view_mat", view);
         m_programs[m_currentShader]->setUniformValue("invView", invView);
-		m_programs[m_currentShader]->setUniformValue("projection_mat", projection);
-		m_programs[m_currentShader]->setUniformValue("modelview_mat", cubemodelView);
+		m_programs[m_currentShader]->setUniformValue("projection_mat", projection_mat);
+		m_programs[m_currentShader]->setUniformValue("view_mat", view_mat);
+		m_programs[m_currentShader]->setUniformValue("model_mat", cubemodelView);
+		m_programs[m_currentShader]->setUniformValue("lightview", lightview);
 
         m_box->draw(m_programs[m_currentShader]);
         m_programs[m_currentShader]->release();
@@ -1008,7 +1011,7 @@ void Scene::renderCubemaps()
             mat.setColumn(3, mat * v);
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            renderBoxes(mat, projection, i);
+            renderBoxes(projection,mat, QMatrix4x4(), i);
 
             m_cubemaps[i]->end();
         }
@@ -1019,7 +1022,7 @@ void Scene::renderCubemaps()
         GLRenderTargetCube::getViewMatrix(mat, face);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        renderBoxes(mat, projection, -1);
+		renderBoxes(projection, mat, QMatrix4x4(), -1);
 
         m_mainCubemap->end();
     }
@@ -1052,18 +1055,22 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
 		glMatrixMode(GL_PROJECTION);
 		qgluPerspective(60.0, width / height, 0.01, 15.0);
 		glMatrixMode(GL_MODELVIEW);
-
+		
+		//投影变换矩阵
 		QMatrix4x4 projection;
-		projection.perspective(60.0, width / height, 0.01, 15.0);
+		projection.perspective(60.0, width / height, 0.01, 20.0);
 
+		//观察变换矩阵
 		QMatrix4x4 view;
-		view.lookAt(QVector3D(0.0, 0.0, 1.0), QVector3D(0, 0, -15), QVector3D(0, 1, 0));
+		view.lookAt(QVector3D(0.0, 0.0, 1.0), QVector3D(0, 0, -20), QVector3D(0, 1, 0));
 
+		//模型变换矩阵
+		QMatrix4x4 model;
 		view.rotate(m_trackBalls[2].rotation());
 		view.translate(QVector3D(0, 0, -2.0f * std::exp(m_distExp / 1200.0f)));
 		//view(2, 3) -= 2.0f * std::exp(m_distExp / 1200.0f);
 
-		renderBoxes(view, projection);
+		renderBoxes(projection, view, model);
 
 		//恢复渲染前的opengl坐标状态(清除setStates中的设置)
 		defaultStates();

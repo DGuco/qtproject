@@ -171,7 +171,7 @@ public slots:
     void setFloatParameter(const QString &name, float value);
     void newItem(ItemDialog::ItemType type);
 protected:
-    void renderBoxes(const QMatrix4x4 &view, const QMatrix4x4 &projection, int excludeBox = -2);
+    void renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view_mat, const QMatrix4x4 &model_mat, int excludeBox = -2);
     void setStates();
     void setLights(QGLShaderProgram* program);
     void defaultStates();

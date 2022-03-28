@@ -3,7 +3,7 @@ varying vec4 specular, ambient, diffuse, lightDirection;
 
 uniform sampler2D tex;
 uniform samplerCube env;
-uniform mat4 view;
+uniform mat4 lightview;
 uniform vec4 basicColor;
 
 void main()
@@ -33,6 +33,6 @@ void main()
                      M.specular * specular * pow(max(RdotL, 0.0), M.shininess);
 
     vec3 R = 2.0 * dot(-position, N) * N + position;
-    vec4 reflectedColor = textureCube(env, R * mat3(view[0].xyz, view[1].xyz, view[2].xyz));
+    vec4 reflectedColor = textureCube(env, R * mat3(lightview[0].xyz, lightview[1].xyz, lightview[2].xyz));
     gl_FragColor = mix(litColor, reflectedColor, 0.2 + 0.8 * pow(1.0 + dot(N, normalize(position)), 2.0));
 }
