@@ -6,12 +6,12 @@ uniform vec4 light_position;
 uniform vec4 light_ambient;
 uniform vec4 light_diffuse;
 uniform vec4 light_specular;
+uniform vec4 material_specular;
+uniform float material_shininess;
 
 void main()
 {
     vec3 N = normalize(normal);
-
-    gl_MaterialParameters M = gl_FrontMaterial;
 
     // assume directional light
     float NdotL = dot(N, lightDirection.xyz);
@@ -25,5 +25,5 @@ void main()
     vec4 unlitColor = gl_Color * (0.8 - clamp(10.0 * (0.4 - rs), 0.0, 0.2));
     unlitColor.w = 1.0;
     gl_FragColor = (light_ambient + light_diffuse * max(NdotL, 0.0)) * unlitColor +
-                    M.specular * light_specular * pow(max(RdotL, 0.0), M.shininess);
+                    material_specular * light_specular * pow(max(RdotL, 0.0), material_shininess);
 }

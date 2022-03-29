@@ -922,8 +922,6 @@ void Scene::setStates()
 		glPushMatrix();
 		//把栈顶矩阵替换为单位矩阵
 		glLoadIdentity();
-
-		//setLights(NULL);
 	}
 
 	float materialSpecular[] = { 0.5f, 0.5f, 0.5f, 1.0f };
@@ -936,34 +934,34 @@ void Scene::setLights(QGLShaderProgram* program)
 	if (program)
 	{
 		QVector4D lightDir(0.0f, 0.0f, 1.0f, 0.0f );
-		QVector4D lightam( 0.2,0.2,0.2,1.0 );
-		QVector4D lightdif( 0.8,0.8,0.8,1.0 );
-		QVector4D lightspe( 0.0,0.0,0.0,1.0f );
-		if (program)
-		{
-			//光照位置
-			program->setUniformValue("light_position", lightDir);
-			//环境光颜色
-			program->setUniformValue("light_ambient", lightam);
-			//漫反射光颜色
-			program->setUniformValue("light_diffuse", lightdif);
-			//镜面反射光颜色
-			program->setUniformValue("light_specular", lightspe);
-		}
+		QVector4D lightam(0.2,0.2,0.2,1.0 );
+		QVector4D lightdif(0.8,0.8,0.8,1.0 );
+		QVector4D lightspe(1.0,1.0,1.0,1.0f );
+		QVector4D materialSpecular(0.5f, 0.5f, 0.5f, 1.0f);
+		//光照位置
+		program->setUniformValue("light_position", lightDir);
+		//环境光颜色
+		program->setUniformValue("light_ambient", lightam);
+		//漫反射光颜色
+		program->setUniformValue("light_diffuse", lightdif);
+		//镜面反射光颜色
+		program->setUniformValue("light_specular", lightspe);
+		//材质反射光颜色
+		program->setUniformValue("material_specular", materialSpecular);
+		//材质镜面反射指数[0,128]
+		program->setUniformValue("material_shininess", 32.0f);
 	}
-	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-	float lightDirar[] = { 0.0f, 0.0f, 1.0f, 0.0f };
-	float lightam[] = {0.2,0.2,0.2,1.0};
-	float lightdif[] = { 0.8,0.8,0.8,1.0 };
-	float lightspe[] = { 0.0,0.0,0.0,1.0f };
-
-	glLightfv(GL_LIGHT0, GL_POSITION, lightDirar);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, lightam);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightdif);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, lightspe);
-
-    glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, 1.0f);
-    glEnable(GL_LIGHT0);
+	else
+	{
+		glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+		//float lightColour[] = {1.0f, 1.0f, 1.0f, 1.0f};
+		float lightDir[] = { 0.0f, 0.0f, 1.0f, 0.0f };
+		//glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColour);
+		//glLightfv(GL_LIGHT0, GL_SPECULAR, lightColour);
+		glLightfv(GL_LIGHT0, GL_POSITION, lightDir);
+		glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, 1.0f);
+		glEnable(GL_LIGHT0);
+	}
 }
 
 void Scene::defaultStates()

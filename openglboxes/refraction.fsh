@@ -8,6 +8,8 @@ uniform vec4 light_position;
 uniform vec4 light_ambient;
 uniform vec4 light_diffuse;
 uniform vec4 light_specular;
+uniform vec4 material_specular;
+uniform float material_shininess;
 
 // Arrays don't work here on glsl < 120, apparently.
 //const float coeffs[6] = float[6](1.0/2.0, 1.0/2.1, 1.0/2.2, 1.0/2.3, 1.0/2.4, 1.0/2.5);
