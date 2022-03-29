@@ -1,5 +1,5 @@
 varying vec3 position, normal;
-varying vec4 specular, ambient, diffuse, lightDirection;
+varying vec4 lightDirection;
 
 uniform sampler2D tex;
 uniform sampler3D noise;
@@ -8,6 +8,10 @@ uniform sampler3D noise;
 uniform vec4 woodColors[2];
 //const float woodTubulence = 0.1;
 uniform float woodTubulence;
+uniform vec4 light_position;
+uniform vec4 light_ambient;
+uniform vec4 light_diffuse;
+uniform vec4 light_specular;
 
 void main()
 {
@@ -24,6 +28,6 @@ void main()
 
     float f = fract(16.0 * r);
     vec4 unlitColor = mix(woodColors[0], woodColors[1], min(1.25 * f, 5.0 - 5.0 * f));
-    gl_FragColor = (ambient + diffuse * max(NdotL, 0.0)) * unlitColor +
-                    M.specular * specular * pow(max(RdotL, 0.0), M.shininess);
+    gl_FragColor = (light_ambient + light_diffuse * max(NdotL, 0.0)) * unlitColor +
+                    M.specular * light_specular * pow(max(RdotL, 0.0), M.shininess);
 }

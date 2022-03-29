@@ -789,7 +789,7 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 		m_environmentProgram->setUniformValue("view_mat", view_mat);
 		m_environmentProgram->setUniformValue("model_mat", skymodel_mat);
 		m_environmentProgram->setUniformValue("lightview", lightview);
-
+		setLights(m_environmentProgram);
         m_box->draw(m_environmentProgram);
         m_environmentProgram->release();
         m_environment->unbind();
@@ -835,6 +835,7 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 		m_programs[i]->setUniformValue("view_mat", view_mat);
 		m_programs[i]->setUniformValue("model_mat", cubemodelView);
 		m_programs[i]->setUniformValue("lightview", lightview);
+		setLights(m_programs[i]);
 
         m_box->draw(m_programs[i]);
         m_programs[i]->release();
@@ -873,6 +874,7 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 		m_programs[m_currentShader]->setUniformValue("view_mat", view_mat);
 		m_programs[m_currentShader]->setUniformValue("model_mat", cubemodelView);
 		m_programs[m_currentShader]->setUniformValue("lightview", lightview);
+		setLights(m_programs[m_currentShader]);
 
         m_box->draw(m_programs[m_currentShader]);
         m_programs[m_currentShader]->release();
@@ -901,7 +903,7 @@ void Scene::setStates()
     glEnable(GL_DEPTH_TEST);	//开启深度测试
     glEnable(GL_CULL_FACE);		//开启遮挡剔除
     glEnable(GL_LIGHTING);		//开启灯源
-    //glEnable(GL_COLOR_MATERIAL);//开启图形（材料）根据光线的照耀进行反射。
+    glEnable(GL_COLOR_MATERIAL);//开启图形（材料）根据光线的照耀进行反射。
     glEnable(GL_TEXTURE_2D);	//开启二维文理
     glEnable(GL_NORMALIZE);		//开启法向量
 
@@ -921,31 +923,45 @@ void Scene::setStates()
 		//把栈顶矩阵替换为单位矩阵
 		glLoadIdentity();
 
-		setLights(NULL);
+		//setLights(NULL);
 	}
 
-    float materialSpecular[] = {0.5f, 0.5f, 0.5f, 1.0f};
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, materialSpecular);
-    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 20.0f);
+	float materialSpecular[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, materialSpecular);
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 32.0f);
 }
 
 void Scene::setLights(QGLShaderProgram* program)
 {
-    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-	QVector4D lightColour(1.0f, 1.0f, 1.0f, 1.0f);
-	QVector4D lightDir(0.0f, 0.0f, 1.0f, 0.0f);
-//     glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColour);
-//     glLightfv(GL_LIGHT0, GL_SPECULAR, lightColour);
-//     glLightfv(GL_LIGHT0, GL_POSITION, lightDir);
 	if (program)
 	{
-		program->setUniformValue("light_position", lightDir);
-		program->setUniformValue("light_specular", lightColour);
-		program->setUniformValue("light_ambient", lightColour);
-		program->setUniformValue("light_diffuse", lightColour);
+		QVector4D lightDir(0.0f, 0.0f, 1.0f, 0.0f );
+		QVector4D lightam( 0.2,0.2,0.2,1.0 );
+		QVector4D lightdif( 0.8,0.8,0.8,1.0 );
+		QVector4D lightspe( 0.0,0.0,0.0,1.0f );
+		if (program)
+		{
+			//光照位置
+			program->setUniformValue("light_position", lightDir);
+			//环境光颜色
+			program->setUniformValue("light_ambient", lightam);
+			//漫反射光颜色
+			program->setUniformValue("light_diffuse", lightdif);
+			//镜面反射光颜色
+			program->setUniformValue("light_specular", lightspe);
+		}
 	}
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 	float lightDirar[] = { 0.0f, 0.0f, 1.0f, 0.0f };
+	float lightam[] = {0.2,0.2,0.2,1.0};
+	float lightdif[] = { 0.8,0.8,0.8,1.0 };
+	float lightspe[] = { 0.0,0.0,0.0,1.0f };
+
 	glLightfv(GL_LIGHT0, GL_POSITION, lightDirar);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, lightam);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightdif);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, lightspe);
+
     glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, 1.0f);
     glEnable(GL_LIGHT0);
 }

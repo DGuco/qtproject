@@ -1,7 +1,11 @@
 varying vec3 position, normal;
-varying vec4 specular, ambient, diffuse, lightDirection;
+varying vec4 lightDirection;
 
 uniform sampler2D tex;
+uniform vec4 light_position;
+uniform vec4 light_ambient;
+uniform vec4 light_diffuse;
+uniform vec4 light_specular;
 
 void main()
 {
@@ -20,6 +24,6 @@ void main()
 
     vec4 unlitColor = gl_Color * (0.8 - clamp(10.0 * (0.4 - rs), 0.0, 0.2));
     unlitColor.w = 1.0;
-    gl_FragColor = (ambient + diffuse * max(NdotL, 0.0)) * unlitColor +
-                    M.specular * specular * pow(max(RdotL, 0.0), M.shininess);
+    gl_FragColor = (light_ambient + light_diffuse * max(NdotL, 0.0)) * unlitColor +
+                    M.specular * light_specular * pow(max(RdotL, 0.0), M.shininess);
 }

@@ -1,10 +1,14 @@
 varying vec3 position, normal;
-varying vec4 specular, ambient, diffuse, lightDirection;
+varying vec4 lightDirection;
 
 uniform sampler2D tex;
 uniform samplerCube env;
 uniform mat4 lightview;
 uniform vec4 basicColor;
+uniform vec4 light_position;
+uniform vec4 light_ambient;
+uniform vec4 light_diffuse;
+uniform vec4 light_specular;
 
 void main()
 {
@@ -29,8 +33,8 @@ void main()
 
     vec4 texColor = texture2D(tex, texCoord.xy);
     vec4 unlitColor = gl_Color * mix(basicColor, vec4(texColor.xyz, 1.0), texColor.w);
-    vec4 litColor = (ambient + diffuse * max(NdotL, 0.0)) * unlitColor +
-                     M.specular * specular * pow(max(RdotL, 0.0), M.shininess);
+    vec4 litColor = (light_ambient + light_diffuse * max(NdotL, 0.0)) * unlitColor +
+                     M.specular * light_specular * pow(max(RdotL, 0.0), M.shininess);
 
     vec3 R = 2.0 * dot(-position, N) * N + position;
     vec4 reflectedColor = textureCube(env, R * mat3(lightview[0].xyz, lightview[1].xyz, lightview[2].xyz));

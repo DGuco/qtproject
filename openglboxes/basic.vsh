@@ -1,5 +1,5 @@
 varying vec3 position, normal;
-varying vec4 specular, ambient, diffuse, lightDirection;
+varying vec4 lightDirection;
 
 attribute vec3 a_position;
 attribute vec2 a_texcoord;
@@ -9,15 +9,16 @@ uniform mat4 lightview;
 uniform mat4 projection_mat;
 uniform mat4 view_mat;
 uniform mat4 model_mat;
+uniform vec4 light_position;
+uniform vec4 light_ambient;
+uniform vec4 light_diffuse;
+uniform vec4 light_specular;
 
 void main()
 {
 	gl_TexCoord[0] = gl_MultiTexCoord0;
 	gl_TexCoord[1] = vec4(a_position,1);
-	specular =  gl_LightSource[0].specular;
-	ambient  =  gl_LightSource[0].ambient;
-	diffuse  =  gl_LightSource[0].diffuse;
-	lightDirection = lightview * gl_LightSource[0].position;
+	lightDirection = lightview * light_position;
 
 	normal = gl_NormalMatrix * a_normal;
 	position = (gl_ModelViewMatrix * vec4(a_position, 1)).xyz;
