@@ -1,4 +1,4 @@
-varying vec3 position, normal;
+varying vec3 position, normal,texcoord;
 varying vec4 lightDirection;
 
 uniform sampler2D tex;
@@ -20,14 +20,14 @@ void main()
     float NdotL = dot(N, lightDirection.xyz);
     float RdotL = dot(reflect(normalize(position), N), lightDirection.xyz);
 
-    vec3 absN = abs(gl_TexCoord[1].xyz);
+    vec3 absN = abs(texcoord.xyz);
     vec3 texCoord;
     if (absN.x > absN.y && absN.x > absN.z)
-        texCoord = gl_TexCoord[1].yzx;
+        texCoord = texcoord.yzx;
     else if (absN.y > absN.z)
-        texCoord = gl_TexCoord[1].zxy;
+        texCoord = texcoord.zxy;
     else
-        texCoord = gl_TexCoord[1].xyz;
+        texCoord = texcoord.xyz;
     texCoord.y *= -sign(texCoord.z);
     texCoord += 0.5;
 

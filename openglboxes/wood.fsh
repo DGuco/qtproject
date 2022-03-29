@@ -1,4 +1,4 @@
-varying vec3 position, normal;
+varying vec3 position, normal,texcoord;
 varying vec4 lightDirection;
 
 uniform sampler2D tex;
@@ -19,8 +19,8 @@ uniform float material_shininess;
 
 void main()
 {
-    float r = length(gl_TexCoord[1].yz);
-    r += woodTubulence * texture3D(noise, 0.25 * gl_TexCoord[1].xyz).x;
+    float r = length(texcoord.yz);
+    r += woodTubulence * texture3D(noise, 0.25 * texcoord.xyz).x;
 
     vec3 N = normalize(normal);
     // assume directional light

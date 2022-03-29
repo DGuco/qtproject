@@ -1,4 +1,4 @@
-varying vec3 position, normal;
+varying vec3 position, normal,texcoord;
 varying vec4 lightDirection;
 
 uniform sampler2D tex;
@@ -17,7 +17,7 @@ void main()
     float turbulence = 0.0;
     float scale = 1.0;
     for (int i = 0; i < 4; ++i) {
-        turbulence += scale * (texture3D(noise, 0.125 * gl_TexCoord[1].xyz / scale).x - 0.5);
+        turbulence += scale * (texture3D(noise, 0.125 * texcoord.xyz / scale).x - 0.5);
         scale *= 0.5;
     }
 

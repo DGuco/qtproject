@@ -1,4 +1,4 @@
-varying vec3 position, normal;
+varying vec3 position,normal,texcoord;
 varying vec4 lightDirection;
 
 attribute vec3 a_position;
@@ -19,10 +19,10 @@ uniform float material_shininess;
 void main()
 {
 	gl_TexCoord[0] = gl_MultiTexCoord0;
-	gl_TexCoord[1] = vec4(a_position,1);
 	lightDirection = lightview * light_position;
 
 	normal = gl_NormalMatrix * a_normal;
+	texcoord = vec3(a_position);
 	position = (gl_ModelViewMatrix * vec4(a_position, 1)).xyz;
 
 	gl_FrontColor = gl_Color;

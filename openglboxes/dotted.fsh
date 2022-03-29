@@ -1,4 +1,4 @@
-varying vec3 position, normal;
+varying vec3 position, normal,texcoord;
 varying vec4 lightDirection;
 
 uniform sampler2D tex;
@@ -17,9 +17,9 @@ void main()
     float NdotL = dot(N, lightDirection.xyz);
     float RdotL = dot(reflect(normalize(position), N), lightDirection.xyz);
 
-    float r1 = length(fract(7.0 * gl_TexCoord[1].xyz) - 0.5);
-    float r2 = length(fract(5.0 * gl_TexCoord[1].xyz + 0.2) - 0.5);
-    float r3 = length(fract(11.0 * gl_TexCoord[1].xyz + 0.7) - 0.5);
+    float r1 = length(fract(7.0 * texcoord.xyz) - 0.5);
+    float r2 = length(fract(5.0 * texcoord.xyz + 0.2) - 0.5);
+    float r3 = length(fract(11.0 * texcoord.xyz + 0.7) - 0.5);
     vec4 rs = vec4(r1, r2, r3, 0.0);
 
     vec4 unlitColor = gl_Color * (0.8 - clamp(10.0 * (0.4 - rs), 0.0, 0.2));
