@@ -8,8 +8,7 @@ VertexDescription P3T2N3Vertex::description[] = {
     {VertexDescription::Position, GL_FLOAT, SIZE_OF_MEMBER(P3T2N3Vertex, position) / sizeof(float), 0, 0},
     {VertexDescription::TexCoord, GL_FLOAT, SIZE_OF_MEMBER(P3T2N3Vertex, texCoord) / sizeof(float), sizeof(QVector3D), 1},
     {VertexDescription::Normal, GL_FLOAT, SIZE_OF_MEMBER(P3T2N3Vertex, normal) / sizeof(float), sizeof(QVector3D) + sizeof(QVector2D), 2},
-
-    {VertexDescription::Null, 0, 0, 0, 0},
+	{VertexDescription::Color, GL_FLOAT, SIZE_OF_MEMBER(P3T2N3Vertex, color) / sizeof(float), sizeof(QVector3D) + sizeof(QVector2D) + sizeof(QVector3D), 3 },
 };
 
 //============================================================================//
@@ -95,7 +94,7 @@ GLRoundedBox::GLRoundedBox(float r, float scale, int n)
                 vp[vidx].position = scale * pos;
                 vp[vidx].normal = centre * normal;
                 vp[vidx].texCoord = QVector2D(pos.x() + 0.5f, pos.y() + 0.5f);
-
+				vp[vidx].color = VERTEX_COLOR;
                 // Corner polygons
                 if (i < n + 1) {
                     ip[iidx++] = vidx;

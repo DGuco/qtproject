@@ -371,8 +371,6 @@ RenderOptionsDialog::RenderOptionsDialog()
 
     QPalette palette;
 
-    // Load all .par files
-    // .par files have a simple syntax for specifying user adjustable uniform variables.
     QSet<QByteArray> uniforms;
     QList<QString> filter = QStringList("*.par");
     QList<QFileInfo> files = QDir(":/res/boxes/").entryInfoList(filter, QDir::Files | QDir::Readable);
@@ -752,7 +750,6 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 {
 	QMatrix4x4 lightview = view_mat * model_mat;
     QMatrix4x4 invView = (view_mat * model_mat).inverted();
-
     // If multi-texturing is supported, use three saplers.
     if (glActiveTexture) {
 		//设置texture0当前选择的纹理
@@ -766,8 +763,8 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
         m_textures[m_currentTexture]->bind();
     }
 
-    glDisable(GL_LIGHTING);
-    glDisable(GL_CULL_FACE);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_CULL_FACE);
 
     QMatrix4x4 viewRotation(view_mat * model_mat);
     viewRotation(3, 0) = viewRotation(3, 1) = viewRotation(3, 2) = 0.0f;
@@ -781,6 +778,7 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
     if (glActiveTexture) {
 		QMatrix4x4 skymodel_mat(model_mat);
 		skymodel_mat.scale(20.0f, 20.0f, 20.0f);
+		QMatrix3x3 normal_mat = (view_mat * skymodel_mat).normalMatrix();
 
 		m_environment->bind();
         m_environmentProgram->bind();
@@ -788,6 +786,7 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 		m_environmentProgram->setUniformValue("projection_mat", projection_mat);
 		m_environmentProgram->setUniformValue("view_mat", view_mat);
 		m_environmentProgram->setUniformValue("model_mat", skymodel_mat);
+		m_environmentProgram->setUniformValue("normal_mat", normal_mat);
 		m_environmentProgram->setUniformValue("lightview", lightview);
 		setLights(m_environmentProgram);
         m_box->draw(m_environmentProgram);
@@ -813,12 +812,14 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
         glTranslatef(2.0f, 0.0f, 0.0f);
         glScalef(0.3f, 0.6f, 0.6f);
 
-		QMatrix4x4 cubemodelView;
-		cubemodelView.rotate(m_trackBalls[1].rotation());
-		cubemodelView = model_mat * cubemodelView;
-		cubemodelView.rotate(360.0f * i / m_programs.size(), 0.0f, 0.0f, 1.0f);
-		cubemodelView.translate(2.0f, 0.0f, 0.0f);
-		cubemodelView.scale(0.3f, 0.6f, 0.6f);
+		QMatrix4x4 cubemodel_mat;
+		cubemodel_mat.rotate(m_trackBalls[1].rotation());
+		cubemodel_mat = model_mat * cubemodel_mat;
+		cubemodel_mat.rotate(360.0f * i / m_programs.size(), 0.0f, 0.0f, 1.0f);
+		cubemodel_mat.translate(2.0f, 0.0f, 0.0f);
+		cubemodel_mat.scale(0.3f, 0.6f, 0.6f);
+		//法线矩阵
+		QMatrix3x3 normal_mat = (view_mat * cubemodel_mat).normalMatrix();
 
         if (glActiveTexture) {
             if (m_dynamicCubemap && m_cubemaps[i])
@@ -833,7 +834,8 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
         m_programs[i]->setUniformValue("invView", invView);
 		m_programs[i]->setUniformValue("projection_mat", projection_mat);
 		m_programs[i]->setUniformValue("view_mat", view_mat);
-		m_programs[i]->setUniformValue("model_mat", cubemodelView);
+		m_programs[i]->setUniformValue("model_mat", cubemodel_mat);
+		m_programs[i]->setUniformValue("normal_mat", normal_mat);
 		m_programs[i]->setUniformValue("lightview", lightview);
 		setLights(m_programs[i]);
 
@@ -854,9 +856,10 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
         m.rotate(m_trackBalls[0].rotation());
         glMultMatrixf(m.constData());
 
-		QMatrix4x4 cubemodelView;
-		cubemodelView.rotate(m_trackBalls[0].rotation());
-		cubemodelView = model_mat * cubemodelView;
+		QMatrix4x4 cubemodel_mat;
+		cubemodel_mat.rotate(m_trackBalls[0].rotation());
+		cubemodel_mat = model_mat * cubemodel_mat;
+		QMatrix3x3 normal_mat = (view_mat * cubemodel_mat).normalMatrix();
 
         if (glActiveTexture) {
             if (m_dynamicCubemap)
@@ -872,8 +875,9 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
         m_programs[m_currentShader]->setUniformValue("invView", invView);
 		m_programs[m_currentShader]->setUniformValue("projection_mat", projection_mat);
 		m_programs[m_currentShader]->setUniformValue("view_mat", view_mat);
-		m_programs[m_currentShader]->setUniformValue("model_mat", cubemodelView);
+		m_programs[m_currentShader]->setUniformValue("model_mat", cubemodel_mat);
 		m_programs[m_currentShader]->setUniformValue("lightview", lightview);
+		m_programs[m_currentShader]->setUniformValue("normal_mat", normal_mat);
 		setLights(m_programs[m_currentShader]);
 
         m_box->draw(m_programs[m_currentShader]);
