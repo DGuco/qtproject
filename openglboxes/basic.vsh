@@ -1,10 +1,10 @@
 varying vec3 position,normal,texcoord;
-varying vec4 lightDirection;
+varying vec4 lightDirection,color;
 
 attribute vec3 a_position;
 attribute vec2 a_texcoord;
 attribute vec3 a_normal;
-attribute vec3 a_color;
+attribute vec4 a_color;
 
 uniform mat4 lightview;
 uniform mat4 projection_mat;
@@ -26,7 +26,6 @@ void main()
 	texcoord = vec3(a_position);
 	position = (view_mat * model_mat * vec4(a_position, 1)).xyz;
 
-	gl_FrontColor = gl_Color;
-
+	color = a_color;
 	gl_Position =  projection_mat *  view_mat * model_mat * vec4(a_position, 1);
 }

@@ -1,5 +1,5 @@
 varying vec3 position, normal;
-varying vec4 lightDirection;
+varying vec4 lightDirection,color;
 
 uniform sampler2D tex;
 uniform samplerCube env;

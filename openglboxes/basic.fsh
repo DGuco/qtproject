@@ -1,5 +1,5 @@
 varying vec3 position, normal,texcoord;
-varying vec4 lightDirection;
+varying vec4 lightDirection,color;
 
 uniform sampler2D tex;
 uniform vec4 basicColor;
@@ -30,7 +30,7 @@ void main()
     texCoord += 0.5;
 
     vec4 texColor = texture2D(tex, texCoord.xy);
-    vec4 unlitColor = gl_Color * mix(basicColor, vec4(texColor.xyz, 1.0), texColor.w);
+    vec4 unlitColor = color * mix(basicColor, vec4(texColor.xyz, 1.0), texColor.w);
     gl_FragColor = (light_ambient + light_diffuse * max(NdotL, 0.0)) * unlitColor +
                     material_specular * light_specular * pow(max(RdotL, 0.0), material_shininess);
 }

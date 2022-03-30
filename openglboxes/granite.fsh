@@ -1,5 +1,5 @@
 varying vec3 position, normal,texcoord;
-varying vec4 lightDirection;
+varying vec4 lightDirection,color;
 
 uniform sampler2D tex;
 uniform sampler3D noise;
