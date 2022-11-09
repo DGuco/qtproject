@@ -31,14 +31,18 @@ QRectF ItemBase::boundingRect() const
 
 void ItemBase::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
 {
+	//被选中的时候给对应的提示
     if (option->state & QStyle::State_Selected) {
         painter->setRenderHint(QPainter::Antialiasing, true);
+		//如果左键选中
         if (option->state & QStyle::State_HasFocus)
             painter->setPen(Qt::yellow);
-        else
-            painter->setPen(Qt::white);
+        else  //右键选中
+            painter->setPen(Qt::blue);
+		//组件四周画一个方框
         painter->drawRect(boundingRect());
 
+		//方框右下角画三条线
         painter->drawLine(m_size / 2 - 9, m_size / 2, m_size / 2, m_size / 2 - 9);
         painter->drawLine(m_size / 2 - 6, m_size / 2, m_size / 2, m_size / 2 - 6);
         painter->drawLine(m_size / 2 - 3, m_size / 2, m_size / 2, m_size / 2 - 3);
@@ -418,7 +422,7 @@ void CircleItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 	//抗锯齿
     painter->setRenderHint(QPainter::Antialiasing, true);
 	//设置画刷样式
-    painter->setBrush(QBrush(m_color, Qt::Dense4Pattern));
+    painter->setBrush(QBrush(m_color, Qt::Dense5Pattern));
 	//去掉边缘的线
     painter->setPen(Qt::NoPen);
     painter->drawPath(path);
