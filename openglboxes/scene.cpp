@@ -58,7 +58,7 @@ ColorEdit::ColorEdit(QRgb initialColor, int id)
     m_button->setAutoFillBackground(true);
     m_button->setMinimumSize(32, 0);
     m_button->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
-    m_button->setFrameStyle(QFrame::StyledPanel | QFrame::Sunken);
+    m_button->setFrameStyle(QFrame::StyledPanel | QFrame::Plain);
     layout->addWidget(m_button);
 
     connect(m_lineEdit, SIGNAL(editingFinished()), this, SLOT(editDone()));
@@ -558,9 +558,9 @@ Scene::Scene(int width, int height, int maxTextureSize)
 {
     setSceneRect(0, 0, width, height);
 
-    m_trackBalls[0] = TrackBall(0.05f, QVector3D(0, 1, 0), TrackBall::Sphere);
-    m_trackBalls[1] = TrackBall(0.005f, QVector3D(0, 0, 1), TrackBall::Sphere);
-    m_trackBalls[2] = TrackBall(0.0f, QVector3D(0, 1, 0), TrackBall::Plane);
+	m_trackBalls[0] = TrackBall(0.05f, QVector3D(0, 1, 0), TrackBall::Sphere);
+	m_trackBalls[1] = TrackBall(0.005f, QVector3D(0, 0, 1), TrackBall::Sphere);
+	m_trackBalls[2] = TrackBall(0.0f, QVector3D(0, 1, 0), TrackBall::Plane);
 
 	//‰÷»æ…Ë÷√∂‘ª∞øÚ
     m_renderOptions = new RenderOptionsDialog;
@@ -697,6 +697,7 @@ void Scene::initGL()
 		filter = QStringList("*.fsh");
 		files = QDir(":/res/boxes/").entryInfoList(filter, QDir::Files | QDir::Readable);
 		foreach(QFileInfo file, files) {
+			//≈≈≥˝ÃÏø’ø«
 			if(file.fileName().indexOf("skybox") != -1)
 			{
 				continue;

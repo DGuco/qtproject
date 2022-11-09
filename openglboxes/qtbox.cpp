@@ -386,30 +386,40 @@ CircleItem::CircleItem(int size, int x, int y) : ItemBase(size, x, y)
 void CircleItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     int dt = m_startTime.msecsTo(QTime::currentTime());
-
-    qreal r0 = 0.5 * m_size * (1.0 - qExp(-0.001 * ((dt + 3800) % 4000)));
-    qreal r1 = 0.5 * m_size * (1.0 - qExp(-0.001 * ((dt + 0) % 4000)));
-    qreal r2 = 0.5 * m_size * (1.0 - qExp(-0.001 * ((dt + 1800) % 4000)));
-    qreal r3 = 0.5 * m_size * (1.0 - qExp(-0.001 * ((dt + 2000) % 4000)));
+	qreal speedFix = 1 / 1000.0F;
+	//圆1的半径
+    qreal r0 = 0.5 * m_size * (1.0 - qExp(-speedFix * ((dt + 3000) % 4000)));
+	//圆2的半径
+    qreal r1 = 0.5 * m_size * (1.0 - qExp(-speedFix * ((dt + 0) % 4000)));
+	//圆3的半径
+	qreal r2 = 0.5 * m_size * (1.0 - qExp(-speedFix * ((dt + 1000) % 4000)));
+	//圆4的半径
+	qreal r3 = 0.5 * m_size * (1.0 - qExp(-speedFix * ((dt + 2000) % 4000)));
 
     if (r0 > r1)
         r0 = 0.0;
     if (r2 > r3)
         r2 = 0.0;
 
-    QPainterPath path;
-    path.moveTo(r1, 0.0);
-    path.arcTo(-r1, -r1, 2 * r1, 2 * r1, 0.0, 360.0);
-    path.lineTo(r0, 0.0);
-    path.arcTo(-r0, -r0, 2 * r0, 2 * r0, 0.0, -360.0);
+	QPainterPath path;
+	//移动到(r1, 0.0)
+	path.lineTo(r1, 0.0);
+	//以(r1, 0.0)为起点逆时针画一个半径为r1得圆
+	path.arcTo(-r1, -r1, 2 * r1, 2 * r1, 0.0, 360.0);
+ 	path.lineTo(r0, 0.0);
+ 	path.arcTo(-r0, -r0, 2 * r0, 2 * r0, 0.0, -360.0);
     path.closeSubpath();
-    path.moveTo(r3, 0.0);
+    path.lineTo(r3, 0.0);
     path.arcTo(-r3, -r3, 2 * r3, 2 * r3, 0.0, 360.0);
     path.lineTo(r0, 0.0);
     path.arcTo(-r2, -r2, 2 * r2, 2 * r2, 0.0, -360.0);
     path.closeSubpath();
+
+	//抗锯齿
     painter->setRenderHint(QPainter::Antialiasing, true);
-    painter->setBrush(QBrush(m_color));
+	//设置画刷样式
+    painter->setBrush(QBrush(m_color, Qt::Dense4Pattern));
+	//去掉边缘的线
     painter->setPen(Qt::NoPen);
     painter->drawPath(path);
     painter->setBrush(Qt::NoBrush);

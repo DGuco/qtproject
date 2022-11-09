@@ -16,6 +16,7 @@ public:
     };
     TrackBall(TrackMode mode = Sphere);
     TrackBall(float angularVelocity, const QVector3D& axis, TrackMode mode = Sphere);
+
     // coordinates in [-1,1]x[-1,1]
     void push(const QPointF& p, const QQuaternion &transformation);
     void move(const QPointF& p, const QQuaternion &transformation);
