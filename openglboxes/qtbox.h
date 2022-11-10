@@ -23,6 +23,7 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 protected:
     virtual ItemBase *createNew(int size, int x, int y) = 0;
+	//ÓÒ¼ü²Ëµ¥µ¯¿ò´¦Àí
     void contextMenuEvent(QGraphicsSceneContextMenuEvent *event) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event) override;

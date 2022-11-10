@@ -12,7 +12,8 @@ const int MIN_ITEM_SIZE = 16;
 
 ItemBase::ItemBase(int size, int x, int y) : m_size(size), m_isResizing(false)
 {
-    setFlag(QGraphicsItem::ItemIsMovable, true);
+	//设置可移动，可选择，可聚焦
+    setFlag(QGraphicsItem::ItemIsMovable, true); 
     setFlag(QGraphicsItem::ItemIsSelectable, true);
     setFlag(QGraphicsItem::ItemIsFocusable, true);
     setAcceptHoverEvents(true);
@@ -53,29 +54,35 @@ void ItemBase::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 void ItemBase::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 {
+	//qDebug() << "Enter ItemBase::contextMenuEvent";
     if (!isSelected() && scene()) {
         scene()->clearSelection();
         setSelected(true);
     }
 
     QMenu menu;
+	//添加菜单项
     QAction *delAction = menu.addAction("Delete");
     QAction *newAction = menu.addAction("New");
     QAction *growAction = menu.addAction("Grow");
     QAction *shrinkAction = menu.addAction("Shrink");
+	//qDebug() << "ItemBase::contextMenuEvent";
 
+	//同步等待直到选择了执行的项或者取消选择否则函数不会返回，会一直等待
     QAction *selectedAction = menu.exec(event->screenPos());
-
+	//qDebug() << "ItemBase::contextMenuEvent exec";
     if (selectedAction == delAction)
-        deleteSelectedItems(scene());
+        deleteSelectedItems(scene());   //删除
     else if (selectedAction == newAction)
-        duplicateSelectedItems(scene());
+        duplicateSelectedItems(scene());   //创建新的
     else if (selectedAction == growAction)
-        growSelectedItems(scene());
+        growSelectedItems(scene());   //放大
     else if (selectedAction == shrinkAction)
-        shrinkSelectedItems(scene());
+        shrinkSelectedItems(scene());  //缩小
+	//qDebug() << "Leave ItemBase::contextMenuEvent";
 }
 
+//复制选中的item
 void ItemBase::duplicateSelectedItems(QGraphicsScene *scene)
 {
     if (!scene)
@@ -91,6 +98,7 @@ void ItemBase::duplicateSelectedItems(QGraphicsScene *scene)
     }
 }
 
+//删除选中的item
 void ItemBase::deleteSelectedItems(QGraphicsScene *scene)
 {
     if (!scene)
@@ -101,11 +109,15 @@ void ItemBase::deleteSelectedItems(QGraphicsScene *scene)
 
     foreach (QGraphicsItem *item, selected) {
         ItemBase *itemBase = qgraphicsitem_cast<ItemBase *>(item);
-        if (itemBase)
-            delete itemBase;
+		if (itemBase)
+		{
+			scene->removeItem(itemBase);
+			delete itemBase;
+		}
     }
 }
 
+//放大选中的item
 void ItemBase::growSelectedItems(QGraphicsScene *scene)
 {
     if (!scene)
@@ -125,6 +137,7 @@ void ItemBase::growSelectedItems(QGraphicsScene *scene)
     }
 }
 
+//缩小选中的item
 void ItemBase::shrinkSelectedItems(QGraphicsScene *scene)
 {
     if (!scene)
