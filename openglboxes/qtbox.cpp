@@ -461,21 +461,25 @@ int CircleItem::type() const
 
 SquareItem::SquareItem(int size, int x, int y) : ItemBase(size, x, y)
 {
+	//背景图片
     m_image = QPixmap(":/res/boxes/square.jpg");
 }
 
 void SquareItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     int dt = m_startTime.msecsTo(QTime::currentTime());
+	//获取当前item的世界变换矩阵
     QTransform oldTransform = painter->worldTransform();
     int dtMod = dt % 2000;
+	//旋转参数
     qreal amp = 0.002 * (dtMod < 1000 ? dtMod : 2000 - dtMod) - 1.0;
-
+	//缩放参数
     qreal scale = 0.6 + 0.2 * amp * amp;
+	//设置世界转换矩阵=oldTransform * QTransform().rotate(15.0 * amp).scale(scale, scale)，旋转+缩放
     painter->setWorldTransform(QTransform().rotate(15.0 * amp).scale(scale, scale), true);
-
+	//绘制图片
     painter->drawPixmap(-m_size / 2, -m_size / 2, m_size, m_size, m_image);
-
+	//还原老的世界转换矩阵(四周的线框不做一上的变换)
     painter->setWorldTransform(oldTransform, false);
     ItemBase::paint(painter, option, widget);
 }
