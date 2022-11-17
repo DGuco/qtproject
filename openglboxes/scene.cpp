@@ -900,7 +900,7 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
     m_textures[m_currentTexture]->unbind();
 }
 
-void Scene::setStates()
+void Scene::initOpenGLParams()
 {
     //glClearColor(0.25f, 0.25f, 0.5f, 1.0f);
 
@@ -911,23 +911,6 @@ void Scene::setStates()
     glEnable(GL_COLOR_MATERIAL);//开启图形（材料）根据光线的照耀进行反射。
     glEnable(GL_TEXTURE_2D);	//开启二维文理
     glEnable(GL_NORMALIZE);		//开启法向量
-
-	//初始化投影矩阵和视图矩阵
-	{
-		//设置投影矩阵为当前矩阵
-		glMatrixMode(GL_PROJECTION);
-		//拷贝投影矩阵放入栈顶
-		glPushMatrix();
-		//把栈顶矩阵替换为单位矩阵
-		glLoadIdentity();
-
-		//设置视图矩阵为当前矩阵
-		glMatrixMode(GL_MODELVIEW);
-		//拷贝视图矩阵放入栈顶
-		glPushMatrix();
-		//把栈顶矩阵替换为单位矩阵
-		glLoadIdentity();
-	}
 
 	float materialSpecular[] = { 0.5f, 0.5f, 0.5f, 1.0f };
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, materialSpecular);
@@ -1063,18 +1046,14 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
 	{
 		//准备绘制
 		painter->beginNativePainting();
-		//初始化坐标系统参数
-		setStates();
+		//初始化opengl参数
+		initOpenGLParams();
 
 		if (m_dynamicCubemap);
 			renderCubemaps();
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glMatrixMode(GL_PROJECTION);
-		qgluPerspective(60.0, width / height, 0.01, 15.0);
-		glMatrixMode(GL_MODELVIEW);
-		
 		//投影变换矩阵
 		QMatrix4x4 projection;
 		projection.perspective(60.0, width / height, 0.01, 20.0);
