@@ -360,8 +360,6 @@ RenderOptionsDialog::RenderOptionsDialog()
     layout->setColumnStretch(1, 1);
 
     int row = 0;
-    QPalette palette;
-    QSet<QByteArray> uniforms;
     QList<QString> filter = QStringList("*.par");
     QList<QFileInfo> files = QDir(":/res/boxes/").entryInfoList(filter, QDir::Files | QDir::Readable);
 
