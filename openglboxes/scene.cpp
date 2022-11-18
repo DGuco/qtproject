@@ -918,17 +918,6 @@ void Scene::setLights(QGLShaderProgram* program)
 		//材质镜面反射指数[0,128]
 		program->setUniformValue("material_shininess", 32.0f);
 	}
-	else
-	{
-		glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-		//float lightColour[] = {1.0f, 1.0f, 1.0f, 1.0f};
-		float lightDir[] = { 0.0f, 0.0f, 1.0f, 0.0f };
-		//glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColour);
-		//glLightfv(GL_LIGHT0, GL_SPECULAR, lightColour);
-		glLightfv(GL_LIGHT0, GL_POSITION, lightDir);
-		glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, 1.0f);
-		glEnable(GL_LIGHT0);
-	}
 }
 
 void Scene::defaultStates()
