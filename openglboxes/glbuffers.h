@@ -130,28 +130,6 @@ struct VertexDescription
     int index; // 0 (unused at the moment)
 };
 
-// Implementation of interleaved buffers.
-// 'T' is a struct which must include a null-terminated static array
-// 'VertexDescription* description'.
-// Example:
-/*
-struct Vertex
-{
-    GLfloat position[3];
-    GLfloat texCoord[2];
-    GLfloat normal[3];
-    GLbyte color[4];
-    static VertexDescription description[];
-};
-
-VertexDescription Vertex::description[] = {
-    {VertexDescription::Position, GL_FLOAT, SIZE_OF_MEMBER(Vertex, position) / sizeof(GLfloat), offsetof(Vertex, position), 0},
-    {VertexDescription::TexCoord, GL_FLOAT, SIZE_OF_MEMBER(Vertex, texCoord) / sizeof(GLfloat), offsetof(Vertex, texCoord), 0},
-    {VertexDescription::Normal, GL_FLOAT, SIZE_OF_MEMBER(Vertex, normal) / sizeof(GLfloat), offsetof(Vertex, normal), 0},
-    {VertexDescription::Color, GL_BYTE, SIZE_OF_MEMBER(Vertex, color) / sizeof(GLbyte), offsetof(Vertex, color), 0},
-    {VertexDescription::Null, 0, 0, 0, 0},
-};
-*/
 template<class T>
 class GLVertexBuffer : public QOpenGLFunctions
 {

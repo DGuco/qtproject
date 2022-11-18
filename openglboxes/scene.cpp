@@ -623,7 +623,7 @@ Scene::~Scene()
 void Scene::initGL()
 {
 	//生成有圆角的立方体的顶点数组和索引数组并绑定
-    m_box = new GLRoundedBox(0.25f/*圆角大小*/, 1.0f/*缩放比*/, 20/*每一个圆角的定点数，顶点数越多越圆润*/);
+    m_box = new GLRoundedBox(0.25f/*圆角大小*/, 1.0f/*缩放比*/, 20/*每一个圆角的顶点数，顶点数越多越圆润*/);
 	//编译顶点着色器
     m_vertexShader = new QGLShader(QGLShader::Vertex);
     m_vertexShader->compileSourceFile(QLatin1String(":/res/boxes/basic.vsh"));
@@ -767,16 +767,9 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 	glDisable(GL_LIGHTING);
 	glDisable(GL_CULL_FACE);
 
-    QMatrix4x4 viewRotation(view_mat * model_mat);
-    viewRotation(3, 0) = viewRotation(3, 1) = viewRotation(3, 2) = 0.0f;
-    viewRotation(0, 3) = viewRotation(1, 3) = viewRotation(2, 3) = 0.0f;
-    viewRotation(3, 3) = 1.0f;
-	//viewRotation.setToIdentity();
-    loadMatrix(viewRotation);
-    glScalef(20.0f, 20.0f, 20.0f);
-
     // Don't render the environment if the environment texture can't be set for the correct sampler.
-    if (glActiveTexture) {
+    if (glActiveTexture) 
+	{
 		QMatrix4x4 skymodel_mat(model_mat);
 		skymodel_mat.scale(20.0f, 20.0f, 20.0f);
 		QMatrix3x3 normal_mat = (view_mat * skymodel_mat).normalMatrix();
@@ -795,23 +788,13 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
         m_environment->unbind();
     }
 
-    loadMatrix(view_mat * model_mat);
-
     glEnable(GL_CULL_FACE);
     glEnable(GL_LIGHTING);
 
-    for (int i = 0; i < m_programs.size(); ++i) {
+    for (int i = 0; i < m_programs.size(); ++i) 
+	{
         if (i == excludeBox)
             continue;
-
-        glPushMatrix();
-        QMatrix4x4 m;
-        m.rotate(m_trackBalls[1].rotation());
-        glMultMatrixf(m.constData());
-
-        glRotatef(360.0f * i / m_programs.size(), 0.0f, 0.0f, 1.0f);
-        glTranslatef(2.0f, 0.0f, 0.0f);
-        glScalef(0.3f, 0.6f, 0.6f);
 
 		QMatrix4x4 cubemodel_mat;
 		cubemodel_mat.rotate(m_trackBalls[1].rotation());
@@ -849,14 +832,10 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
             else
                 m_environment->unbind();
         }
-        glPopMatrix();
     }
 
-    if (-1 != excludeBox) {
-        QMatrix4x4 m;
-        m.rotate(m_trackBalls[0].rotation());
-        glMultMatrixf(m.constData());
-
+    if (-1 != excludeBox) 
+	{
 		QMatrix4x4 cubemodel_mat;
 		cubemodel_mat.rotate(m_trackBalls[0].rotation());
 		cubemodel_mat = model_mat * cubemodel_mat;
