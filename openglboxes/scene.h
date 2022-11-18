@@ -115,7 +115,6 @@ protected slots:
     void setColorParameter(QRgb color, int id);
     void setFloatParameter(float value, int id);
 signals:
-    void dynamicCubemapToggled(int);
     void colorParameterChanged(const QString &, QRgb);
     void floatParameterChanged(const QString &, float);
     void textureChanged(int);
@@ -166,7 +165,6 @@ public:
 public slots:
     void setShader(int index);
     void setTexture(int index);
-    void toggleDynamicCubemap(int state);
     void setColorParameter(const QString &name, QRgb color);
     void setFloatParameter(const QString &name, float value);
     void newItem(ItemDialog::ItemType type);
@@ -194,8 +192,6 @@ private:
 
     int m_currentShader;
     int m_currentTexture;
-    bool m_dynamicCubemap;
-    bool m_updateAllCubemaps;
 
     RenderOptionsDialog *m_renderOptions;
 	TwoSidedGraphicsWidget *m_twoSidedGraphicsWidget;

@@ -360,17 +360,7 @@ RenderOptionsDialog::RenderOptionsDialog()
     layout->setColumnStretch(1, 1);
 
     int row = 0;
-
-    QCheckBox *check = new QCheckBox(tr("Dynamic cube map"));
-    check->setCheckState(Qt::Unchecked);
-    // Dynamic cube maps are only enabled when multi-texturing and render to texture are available.
-    check->setEnabled(glActiveTexture && glGenFramebuffersEXT);
-    connect(check, SIGNAL(stateChanged(int)), this, SIGNAL(dynamicCubemapToggled(int)));
-    layout->addWidget(check, 0, 0, 1, 2);
-    ++row;
-
     QPalette palette;
-
     QSet<QByteArray> uniforms;
     QList<QString> filter = QStringList("*.par");
     QList<QFileInfo> files = QDir(":/res/boxes/").entryInfoList(filter, QDir::Files | QDir::Readable);
@@ -548,8 +538,6 @@ Scene::Scene(int width, int height, int maxTextureSize)
     , m_maxTextureSize(maxTextureSize)
     , m_currentShader(0)
     , m_currentTexture(0)
-    , m_dynamicCubemap(false)
-    , m_updateAllCubemaps(true)
     , m_box(0)
     , m_vertexShader(0)
 	, m_environment(0)
@@ -567,7 +555,6 @@ Scene::Scene(int width, int height, int maxTextureSize)
     m_renderOptions->move(20, 120);
     m_renderOptions->resize(m_renderOptions->sizeHint());
 
-    connect(m_renderOptions, SIGNAL(dynamicCubemapToggled(int)), this, SLOT(toggleDynamicCubemap(int)));
     connect(m_renderOptions, SIGNAL(colorParameterChanged(QString,QRgb)), this, SLOT(setColorParameter(QString,QRgb)));
     connect(m_renderOptions, SIGNAL(floatParameterChanged(QString,float)), this, SLOT(setFloatParameter(QString,float)));
     connect(m_renderOptions, SIGNAL(textureChanged(int)), this, SLOT(setTexture(int)));
@@ -806,7 +793,7 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 		QMatrix3x3 normal_mat = (view_mat * cubemodel_mat).normalMatrix();
 
         if (glActiveTexture) {
-            if (m_dynamicCubemap && m_cubemaps[i])
+            if (m_cubemaps[i])
                 m_cubemaps[i]->bind();
             else
                 m_environment->bind();
@@ -827,7 +814,7 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
         m_programs[i]->release();
 
         if (glActiveTexture) {
-            if (m_dynamicCubemap && m_cubemaps[i])
+            if (m_cubemaps[i])
                 m_cubemaps[i]->unbind();
             else
                 m_environment->unbind();
@@ -842,10 +829,7 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 		QMatrix3x3 normal_mat = (view_mat * cubemodel_mat).normalMatrix();
 
         if (glActiveTexture) {
-            if (m_dynamicCubemap)
-                m_mainCubemap->bind();
-            else
-                m_environment->bind();
+			m_mainCubemap->bind();
         }
 
         m_programs[m_currentShader]->bind();
@@ -864,10 +848,7 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
         m_programs[m_currentShader]->release();
 
         if (glActiveTexture) {
-            if (m_dynamicCubemap)
-                m_mainCubemap->unbind();
-            else
-                m_environment->unbind();
+			m_mainCubemap->unbind();
         }
     }
 
@@ -949,9 +930,6 @@ void Scene::defaultStates()
 
 void Scene::renderCubemaps()
 {
-    // To speed things up, only update the cubemaps for the small cubes every N frames.
-    const int N = (m_updateAllCubemaps ? 1 : 3);
-
     QMatrix4x4 mat;
     GLRenderTargetCube::getProjectionMatrix(mat, 0.1f, 100.0f);
 	QMatrix4x4 projection(mat);
@@ -965,7 +943,7 @@ void Scene::renderCubemaps()
 
     QVector3D center;
 
-    for (int i = m_frame % N; i < m_cubemaps.size(); i += N) {
+    for (int i = 1; i < m_cubemaps.size(); i++) {
         if (0 == m_cubemaps[i])
             continue;
 
@@ -1001,8 +979,6 @@ void Scene::renderCubemaps()
 
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
-
-    m_updateAllCubemaps = false;
 }
 
 void Scene::drawBackground(QPainter *painter, const QRectF &rect)
@@ -1017,11 +993,8 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
 		//初始化opengl参数
 		initOpenGLParams();
 
-		if (m_dynamicCubemap);
-			renderCubemaps();
-
+		renderCubemaps();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 		//投影变换矩阵
 		QMatrix4x4 projection;
 		projection.perspective(60.0, width / height, 0.01, 20.0);
@@ -1165,12 +1138,6 @@ void Scene::setTexture(int index)
 {
     if (index >= 0 && index < m_textures.size())
         m_currentTexture = index;
-}
-
-void Scene::toggleDynamicCubemap(int state)
-{
-    if ((m_dynamicCubemap = (state == Qt::Checked)))
-        m_updateAllCubemaps = true;
 }
 
 void Scene::setColorParameter(const QString &name, QRgb color)
