@@ -170,7 +170,7 @@ GLTextureCube::GLTextureCube(int size)
 
 GLTextureCube::GLTextureCube(const QStringList& fileNames, int size)
 {
-	glGenTextures(1, &m_texture);
+	//glGenTextures(1, &m_texture);
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_texture);
     int index = 0;
     foreach (QString file, fileNames) {
@@ -232,13 +232,17 @@ GLFrameBufferObject::GLFrameBufferObject(int width, int height)
 {
     GLBUFFERS_ASSERT_OPENGL("GLFrameBufferObject::GLFrameBufferObject",
         glGenFramebuffersEXT && glGenRenderbuffersEXT && glBindRenderbufferEXT && glRenderbufferStorageEXT, return)
-
-    // TODO: share depth buffers of same size
+	//创建一个帧缓冲对象
     glGenFramebuffersEXT(1, &m_fbo);
+	//将它绑定为激活的帧缓冲
     //glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_fbo);
+	//创建一个渲染缓冲对象
     glGenRenderbuffersEXT(1, &m_depthBuffer);
+	//绑定这个渲染缓冲对象
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_depthBuffer);
+	//创建一个深度和模板渲染缓冲对象
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, m_width, m_height);
+	//附加这个渲染缓冲对象
     //glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, m_depthBuffer);
     //glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 }
@@ -256,12 +260,16 @@ void GLFrameBufferObject::setAsRenderTarget(bool state)
 {
     GLBUFFERS_ASSERT_OPENGL("GLFrameBufferObject::setAsRenderTarget", glBindFramebufferEXT, return)
 
-    if (state) {
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_fbo);
+    if (state) 
+	{
+		//将它绑定为激活的帧缓冲
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_fbo);
         glPushAttrib(GL_VIEWPORT_BIT);
         glViewport(0, 0, m_width, m_height);
-    } else {
+    } else
+	{
         glPopAttrib();
+		//要保证所有的渲染操作在主窗口中有视觉效果，我们需要再次激活默认帧缓冲，将它绑定到0
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
     }
 }
@@ -289,9 +297,15 @@ void GLRenderTargetCube::begin(int face)
         glFramebufferTexture2DEXT && glFramebufferRenderbufferEXT, return)
 
     m_fbo.setAsRenderTarget(true);
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,
-        GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, m_texture, 0);
+	//纹理附加到帧缓冲
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, m_texture, 0);
+	//附加这个渲染缓冲对象
     glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, m_fbo.m_depthBuffer);
+	if (glCheckFramebufferStatusEXT(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
+	{
+		qWarning() << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+		return;
+	}
 }
 
 void GLRenderTargetCube::end()

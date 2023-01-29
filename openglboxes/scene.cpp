@@ -683,7 +683,8 @@ void Scene::initGL()
 		files = QDir(":/res/boxes/").entryInfoList(filter, QDir::Files | QDir::Readable);
 		foreach(QFileInfo file, files) {
 			//排除天空壳
-			if(file.fileName().indexOf("skybox") != -1)
+			QString fileName = file.fileName();
+			if(fileName.indexOf("skybox") != -1)
 			{
 				continue;
 			}
@@ -712,7 +713,14 @@ void Scene::initGL()
 			m_renderOptions->addShader(file.baseName());
 
 			program->bind();
-			m_cubemaps << ((program->uniformLocation("env") != -1) ? new GLRenderTargetCube(qMin(256, m_maxTextureSize)) : 0);
+			if (program->uniformLocation("env") != -1)
+			{
+				m_cubemaps << new GLRenderTargetCube(qMin(256, m_maxTextureSize));
+			}
+			else
+			{
+				m_cubemaps << NULL;
+			}
 			program->release();
 		}
 
@@ -745,6 +753,7 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
         glActiveTexture(GL_TEXTURE2);
         m_noise->bind();
         glActiveTexture(GL_TEXTURE1);
+		m_environment->bind();
     } else {
         m_textures[m_currentTexture]->bind();
     }
@@ -761,7 +770,8 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 
 		m_environment->bind();
         m_environmentProgram->bind();
-        m_environmentProgram->setUniformValue("env", GLint(1));
+		//告诉着色器环境纹理使用第二个纹理(索引从0开始)
+		m_environmentProgram->setUniformValue("env", m_environment->textureId());
 		m_environmentProgram->setUniformValue("projection_mat", projection_mat);
 		m_environmentProgram->setUniformValue("view_mat", view_mat);
 		m_environmentProgram->setUniformValue("model_mat", skymodel_mat);
@@ -797,9 +807,12 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
                 m_environment->bind();
         }
         m_programs[i]->bind();
+		//告诉着色器环境纹理
         m_programs[i]->setUniformValue("tex", GLint(0));
-        m_programs[i]->setUniformValue("env", GLint(1));
-        m_programs[i]->setUniformValue("noise", GLint(2));
+		//告诉着色器环境纹理
+        m_programs[i]->setUniformValue("env", m_environment->textureId());
+		//告诉着色器环境噪声紋理
+        m_programs[i]->setUniformValue("noise", m_noise->textureId());
         m_programs[i]->setUniformValue("invView", invView);
 		m_programs[i]->setUniformValue("projection_mat", projection_mat);
 		m_programs[i]->setUniformValue("view_mat", view_mat);
@@ -832,8 +845,8 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 
         m_programs[m_currentShader]->bind();
         m_programs[m_currentShader]->setUniformValue("tex", GLint(0));
-        m_programs[m_currentShader]->setUniformValue("env", GLint(1));
-        m_programs[m_currentShader]->setUniformValue("noise", GLint(2));
+        m_programs[m_currentShader]->setUniformValue("env", m_environment->textureId());
+        m_programs[m_currentShader]->setUniformValue("noise",m_noise->textureId());
         m_programs[m_currentShader]->setUniformValue("invView", invView);
 		m_programs[m_currentShader]->setUniformValue("projection_mat", projection_mat);
 		m_programs[m_currentShader]->setUniformValue("view_mat", view_mat);
@@ -931,25 +944,20 @@ void Scene::renderCubemaps()
     QMatrix4x4 mat;
     GLRenderTargetCube::getProjectionMatrix(mat, 0.1f, 100.0f);
 	QMatrix4x4 projection(mat);
-
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    loadMatrix(mat);
-
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-
     QVector3D center;
 
-    for (int i = 1; i < m_cubemaps.size(); i++) {
-        if (0 == m_cubemaps[i])
+    for (int i = 1; i < m_cubemaps.size(); i++) 
+	{
+        if (NULL == m_cubemaps[i])
             continue;
 
         float angle = 2.0f * PI * i / m_cubemaps.size();
 
         center = m_trackBalls[1].rotation().rotatedVector(QVector3D(std::cos(angle), std::sin(angle), 0.0f));
 
-        for (int face = 0; face < 6; ++face) {
+        for (int face = 0; face < 6; ++face) 
+		{
+			//激活自定义帧缓存
             m_cubemaps[i]->begin(face);
 
             GLRenderTargetCube::getViewMatrix(mat, face);
@@ -959,6 +967,7 @@ void Scene::renderCubemaps()
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             renderBoxes(projection,mat, QMatrix4x4(), i);
 
+			//激活默认帧缓存，渲染窗口
             m_cubemaps[i]->end();
         }
     }

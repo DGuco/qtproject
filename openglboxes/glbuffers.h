@@ -33,6 +33,7 @@ public:
     virtual void bind() = 0;
     virtual void unbind() = 0;
     virtual bool failed() const {return m_failed;}
+	GLuint textureId() { return m_texture; }
 protected:
     GLuint m_texture;
     bool m_failed;

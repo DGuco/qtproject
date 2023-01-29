@@ -4,6 +4,9 @@
  * https://zhuanlan.zhihu.com/p/22337544
  * https://learnopengl-cn.github.io/04%20Advanced%20OpenGL/06%20Cubemaps/
  * https://www.jianshu.com/p/e001aec29976
+ * https://learnopengl-cn.github.io/04%20Advanced%20OpenGL/05%20Framebuffers/
+ * https://baijiahao.baidu.com/s?id=1708089581887590806&wfr=spider&for=pc
+ * https://blog.csdn.net/zwj_zny/article/details/123070087
  */
 #include "glextensions.h"
 
