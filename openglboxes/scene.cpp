@@ -613,26 +613,6 @@ void Scene::initGL()
     m_vertexShader = new QGLShader(QGLShader::Vertex);
     m_vertexShader->compileSourceFile(QLatin1String(":/res/boxes/basic.vsh"));
 
-	//天空盒渲染程序准备
-	{
-		QStringList list;
-		list << ":/res/boxes/cubemap_posx.jpg" << ":/res/boxes/cubemap_negx.jpg" << ":/res/boxes/cubemap_posy.jpg"
-			<< ":/res/boxes/cubemap_negy.jpg" << ":/res/boxes/cubemap_posz.jpg" << ":/res/boxes/cubemap_negz.jpg";
-		//初始化立方体贴图
-		m_environment = new GLTextureCube(list, qMin(1024, m_maxTextureSize));
-		//编译天空盒着色器
-		m_environmentShader = new QGLShader(QGLShader::Fragment);
-		m_environmentShader->compileSourceFile(QLatin1String(":/res/boxes/skybox.fsh"));
-		//创建天空盒可编程渲染管线程序
-		m_environmentProgram = new QGLShaderProgram;
-		//顶点着色器
-		m_environmentProgram->addShader(m_vertexShader);
-		//像素着色器
-		m_environmentProgram->addShader(m_environmentShader);
-		//链接程序
-		m_environmentProgram->link();
-	}
-
 	//噪声数据
 	{
 		const int NOISE_SIZE = 128;
@@ -656,6 +636,26 @@ void Scene::initGL()
 		}
 		m_noise->load(NOISE_SIZE, NOISE_SIZE, NOISE_SIZE, data);
 		delete[] data;
+	}
+
+	//天空盒渲染程序准备
+	{
+		QStringList list;
+		list << ":/res/boxes/cubemap_posx.jpg" << ":/res/boxes/cubemap_negx.jpg" << ":/res/boxes/cubemap_posy.jpg"
+			<< ":/res/boxes/cubemap_negy.jpg" << ":/res/boxes/cubemap_posz.jpg" << ":/res/boxes/cubemap_negz.jpg";
+		//初始化立方体贴图
+		m_environment = new GLTextureCube(list, qMin(1024, m_maxTextureSize));
+		//编译天空盒着色器
+		m_environmentShader = new QGLShader(QGLShader::Fragment);
+		m_environmentShader->compileSourceFile(QLatin1String(":/res/boxes/skybox.fsh"));
+		//创建天空盒可编程渲染管线程序
+		m_environmentProgram = new QGLShaderProgram;
+		//顶点着色器
+		m_environmentProgram->addShader(m_vertexShader);
+		//像素着色器
+		m_environmentProgram->addShader(m_environmentShader);
+		//链接程序
+		m_environmentProgram->link();
 	}
 
 	//所有的boxes设置
@@ -749,11 +749,12 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 		//设置texture0当前选择的纹理
         glActiveTexture(GL_TEXTURE0);
         m_textures[m_currentTexture]->bind();
-		//设置texture2为3d噪声
-        glActiveTexture(GL_TEXTURE2);
-        m_noise->bind();
-        glActiveTexture(GL_TEXTURE1);
+		//天空壳纹理
+        glActiveTexture(GL_TEXTURE0 + m_environment->textureId());
 		m_environment->bind();
+		//设置texture2为3d噪声
+		glActiveTexture(GL_TEXTURE0 + m_noise->textureId());
+		m_noise->bind();
     } else {
         m_textures[m_currentTexture]->bind();
     }
