@@ -19,7 +19,7 @@ if (m_failed || !(assertion)) {                                                 
     returnStatement;                                                                        \
 }
 
-void qgluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar);
+void qgluPerspective(QMatrix4x4 &projection,GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar);
 
 QT_BEGIN_NAMESPACE
 class QMatrix4x4;

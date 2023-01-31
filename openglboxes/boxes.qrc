@@ -22,5 +22,7 @@
         <file>smiley.png</file>
         <file>qt-logo.jpg</file>
         <file>skybox.fsh</file>
+        <file>box_shader.fsh</file>
+        <file>box_shader.vsh</file>
     </qresource>
 </RCC>

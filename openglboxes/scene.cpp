@@ -688,6 +688,10 @@ void Scene::initGL()
 			{
 				continue;
 			}
+			if (fileName.indexOf("box_shader") != -1)
+			{
+				continue;
+			}
 			QGLShaderProgram *program = new QGLShaderProgram;
 			QGLShader* shader = new QGLShader(QGLShader::Fragment);
 			shader->compileSourceFile(file.absoluteFilePath());
@@ -728,16 +732,6 @@ void Scene::initGL()
 	}
 }
 
-static void loadMatrix(const QMatrix4x4& m)
-{
-    // static to prevent glLoadMatrixf to fail on certain drivers
-    static GLfloat mat[16];
-    const float *data = m.constData();
-    for (int index = 0; index < 16; ++index)
-        mat[index] = data[index];
-    glLoadMatrixf(mat);
-}
-
 // If one of the boxes should not be rendered, set excludeBox to its index.
 // If the main box should not be rendered, set excludeBox to -1.
 void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view_mat, const QMatrix4x4 &model_mat, int excludeBox)
@@ -771,7 +765,7 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 
 		m_environment->bind();
         m_environmentProgram->bind();
-		//告诉着色器环境纹理使用第二个纹理(索引从0开始)
+		//告诉着色器环境纹理使用第二个纹理
 		m_environmentProgram->setUniformValue("env", m_environment->textureId());
 		m_environmentProgram->setUniformValue("projection_mat", projection_mat);
 		m_environmentProgram->setUniformValue("view_mat", view_mat);
@@ -913,33 +907,6 @@ void Scene::setLights(QGLShaderProgram* program)
 	}
 }
 
-void Scene::defaultStates()
-{
-    //glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_LIGHTING);
-    //glDisable(GL_COLOR_MATERIAL);
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_LIGHT0);
-    glDisable(GL_NORMALIZE);
-
-	//设置投影矩阵为当前矩阵
-    //glMatrixMode(GL_MODELVIEW);
-	//弹出一个矩阵
-    glPopMatrix();
-
-	//设置视图矩阵为当前矩阵
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-
-    glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, 0.0f);
-    float defaultMaterialSpecular[] = {0.0f, 0.0f, 0.0f, 1.0f};
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, defaultMaterialSpecular);
-    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 0.0f);
-}
-
 void Scene::renderCubemaps()
 {
     QMatrix4x4 mat;
@@ -1018,9 +985,6 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
 		//view(2, 3) -= 2.0f * std::exp(m_distExp / 1200.0f);
 
 		renderBoxes(projection, view, model);
-
-		//恢复渲染前的opengl坐标状态(清除setStates中的设置)
-		defaultStates();
 		++m_frame;
 		//结束绘制
 		painter->endNativePainting();

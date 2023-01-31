@@ -172,7 +172,6 @@ protected:
     void renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view_mat, const QMatrix4x4 &model_mat, int excludeBox = -2);
     void initOpenGLParams();
     void setLights(QGLShaderProgram* program);
-    void defaultStates();
     void renderCubemaps();
 
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
