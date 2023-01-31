@@ -332,11 +332,11 @@ QtBox::QtBox(int size, int x, int y) : ItemBase(size, x, y), m_texture(0)
 		22,  20,  23, //triangle12
 	};
 	// 绑定索引数组 VBO 1
-// 	indexBuf.bind();
-// 	indexBuf.allocate(indices, 36 * sizeof(GLushort));
+ 	indexBuf.bind();
+ 	indexBuf.allocate(indices, 36 * sizeof(GLushort));
 
 	m_texture = new GLTexture2D(":/res/boxes/qt-logo.jpg", 64, 64);
-	//initGl();
+	initGl();
 }
 
 QtBox::~QtBox()
