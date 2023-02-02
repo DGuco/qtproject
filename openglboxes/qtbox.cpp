@@ -301,9 +301,45 @@ QtBox::QtBox(int size, int x, int y) : ItemBase(size, x, y), m_texture(0)
 			}
 		}
 	}
+
+	VertexData vertices[24] =
+	{
+		////////////////////////////////CUBE1//////////////////////////////////////
+		// 点数4的面
+		{ QVector3D(-1.0f, -1.0f,  1.0f), QVector2D(0.0f, 0.0f),	QVector3D(0.0f, 0.0f,1.0f) },
+		{ QVector3D(1.0f, -1.0f,  1.0f),  QVector2D((1 / 3.0f), 0.0f),QVector3D(0.0f, 0.0f,1.0f) },
+		{ QVector3D(-1.0f,  1.0f,  1.0f), QVector2D(0.0f,(1 / 2.0f)),QVector3D(0.0f, 0.0f,1.0f) },
+		{ QVector3D(1.0f,  1.0f,  1.0f),  QVector2D((1 / 3.0f),(1 / 2.0f)),QVector3D(0.0f, 0.0f,1.0f) },
+		// 点数1的面
+		{ QVector3D(1.0f, -1.0f,  1.0f),  QVector2D(0.0f,(1 / 2.0f)), QVector3D(1.0f, 0.0f,0.0f) },
+		{ QVector3D(1.0f, -1.0f, -1.0f),  QVector2D((1 / 3.0f),(1 / 2.0f)), QVector3D(1.0f, 0.0f,0.0f) },
+		{ QVector3D(1.0f,  1.0f,  1.0f),  QVector2D(0.0f, 1.0f), QVector3D(1.0f, 0.0f,0.0f) },
+		{ QVector3D(1.0f,  1.0f, -1.0f),  QVector2D((1 / 3.0f), 1.0f), QVector3D(1.0f, 0.0f,0.0f) },
+		//点数3的面
+		{ QVector3D(1.0f, -1.0f, -1.0f),  QVector2D((2 / 3.0f),(1 / 2.0f)), QVector3D(0.0f, 0.0f,-1.0f) },
+		{ QVector3D(-1.0f, -1.0f, -1.0f), QVector2D(1.0f,(1 / 2.0f)), QVector3D(0.0f, 0.0f,-1.0f) },
+		{ QVector3D(1.0f,  1.0f, -1.0f),  QVector2D((2 / 3.0f), 1.0f), QVector3D(0.0f, 0.0f,-1.0f) },
+		{ QVector3D(-1.0f,  1.0f, -1.0f), QVector2D(1.0f, 1.0f), QVector3D(0.0f, 0.0f,-1.0f) },
+		//点数6的面
+		{ QVector3D(-1.0f, -1.0f, -1.0f), QVector2D((2 / 3.0f), 0.0f), QVector3D(-1.0f, 0.0f,0.0f) },
+		{ QVector3D(-1.0f, -1.0f,  1.0f), QVector2D(1.0f, 0.0f), QVector3D(-1.0f, 0.0f,0.0f) },
+		{ QVector3D(-1.0f,  1.0f, -1.0f), QVector2D((2 / 3.0f),(1 / 2.0f)), QVector3D(-1.0f, 0.0f,0.0f) },
+		{ QVector3D(-1.0f,  1.0f,  1.0f), QVector2D(1.0f,(1 / 2.0f)), QVector3D(-1.0f, 0.0f,0.0f) },
+		//点数5的面
+		{ QVector3D(-1.0f, -1.0f, -1.0f), QVector2D((1 / 3.0f), 0.0f), QVector3D(0.0f, -1.0f,0.0f) },
+		{ QVector3D(1.0f, -1.0f, -1.0f), QVector2D((2 / 3.0f), 0.0f), QVector3D(0.0f, -1.0f,0.0f) },
+		{ QVector3D(-1.0f, -1.0f,  1.0f), QVector2D((1 / 3.0f),(1 / 2.0f)), QVector3D(0.0f, -1.0f,0.0f) },
+		{ QVector3D(1.0f, -1.0f,  1.0f), QVector2D((2 / 3.0f),(1 / 2.0f)), QVector3D(0.0f, -1.0f,0.0f) },
+		//点数2的面
+		{ QVector3D(-1.0f,  1.0f,  1.0f), QVector2D((1 / 3.0f),(1 / 2.0f)), QVector3D(0.0f, 1.0f,0.0f) },
+		{ QVector3D(1.0f,  1.0f,  1.0f), QVector2D((2 / 3.0f),(1 / 2.0f)), QVector3D(0.0f, 1.0f,0.0f) },
+		{ QVector3D(-1.0f,  1.0f, -1.0f), QVector2D((1 / 3.0f), 1.0f), QVector3D(0.0f, 1.0f,0.0f) },
+		{ QVector3D(1.0f,  1.0f, -1.0f), QVector2D((2 / 3.0f), 1.0f), QVector3D(0.0f, 1.0f,0.0f) },
+	};
+
 	// 绑定顶点数组 VBO 0
 	arrayBuf.bind();
-	arrayBuf.allocate(m_vertices, 24 * sizeof(VertexData));
+	arrayBuf.allocate(vertices, 24 * sizeof(VertexData));
 
 	GLushort indices[36] =
 	{
@@ -430,115 +466,120 @@ void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     };
 
     painter->beginNativePainting();
-	/*
-	//glBindFramebufferEXT(GL_FRAMEBUFFER, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glEnable(GL_DEPTH_TEST);
+	glClear(GL_COLOR | GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_NORMALIZE);
 
-	m_texture->bind();
-	glEnable(GL_TEXTURE_2D);
-
-	m_cubeProgram->bind();
-
-	QMatrix4x4 projection(moveToRectMatrix);
-	//qgluPerspective(projection,60.0, 1.0, 0.01, 10.0);
-	QMatrix4x4 modelview;
-	modelview.setToIdentity();
-	modelview.translate(0.0f, 0.0f, -1.5f);
-	modelview.rotate(ROTATE_SPEED_X * m_startTime.msecsTo(QTime::currentTime()), 1.0f, 0.0f, 0.0f);
-	modelview.rotate(ROTATE_SPEED_Y * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 1.0f, 0.0f);
-	modelview.rotate(ROTATE_SPEED_Z * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 0.0f, 1.0f);
-	int dt = m_startTime.msecsTo(QTime::currentTime());
-	if (dt < 500)
-		modelview.scale(dt / 500.0f, dt / 500.0f, dt / 500.0f);
-
-	QMatrix4x4 mvpmatrix = projection * modelview;
-	m_cubeProgram->setUniformValue("mvp_matrix", mvpmatrix);
-	//渲染管线只有一个纹理，指定着色器texture为0号纹理
-	m_cubeProgram->setUniformValue("texture", 0);
-	
-// 	// 使用索引缓冲数组渲染三角形
-// 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, 0);
-	*/
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadMatrixf(moveToRectMatrix);
-	QMatrix4x4 modelView;
-    qgluPerspective(modelView,60.0, 1.0, 0.01, 10.0);
-
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-
-    //glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_LIGHTING);
-    glEnable(GL_COLOR_MATERIAL);
-    glEnable(GL_NORMALIZE);
-
-    m_texture->bind();
-    glEnable(GL_TEXTURE_2D);
-
-    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-    float lightColour[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    float lightDir[] = {0.0f, 0.0f, 1.0f, 0.0f};
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColour);
-    glLightfv(GL_LIGHT0, GL_POSITION, lightDir);
-    glEnable(GL_LIGHT0);
-
-    glTranslatef(0.0f, 0.0f, -1.5f);
-    glRotatef(ROTATE_SPEED_X * m_startTime.msecsTo(QTime::currentTime()), 1.0f, 0.0f, 0.0f);
-    glRotatef(ROTATE_SPEED_Y * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 1.0f, 0.0f);
-    glRotatef(ROTATE_SPEED_Z * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 0.0f, 1.0f);
-	int dt = m_startTime.msecsTo(QTime::currentTime());
-
-	if (dt < 500)
-		glScalef(dt / 500.0f, dt / 500.0f, dt / 500.0f);
-
-	int dataindex = 0;
-    for (int dir = 0; dir < 3; ++dir) 
+	bool debug = 0;
+	if (debug)
 	{
-        glColor4f(1.0f, 1.0f, 1.0f, 1.0);
+		m_texture->bind();
+		glEnable(GL_TEXTURE_2D);
 
-        glBegin(GL_TRIANGLE_STRIP);
-        glNormal3fv(reinterpret_cast<float *>(&m_normals[2 * dir + 0]));
-        for (int i = 0; i < 2; ++i) {
-            for (int j = 0; j < 2; ++j) {
-                glTexCoord2fv(reinterpret_cast<float *>(&m_texCoords[(j << 1) | i]));
-                glVertex3fv(reinterpret_cast<float *>(&m_vertices[(i << ((dir + 2) % 3)) | (j << ((dir + 1) % 3))]));
-            }
-        }
-        glEnd();
+		m_cubeProgram->bind();
 
-        glBegin(GL_TRIANGLE_STRIP);
-        glNormal3fv(reinterpret_cast<float *>(&m_normals[2 * dir + 1]));
-        for (int i = 0; i < 2; ++i) {
-            for (int j = 0; j < 2; ++j) {
-                glTexCoord2fv(reinterpret_cast<float *>(&m_texCoords[(j << 1) | i]));
-                glVertex3fv(reinterpret_cast<float *>(&m_vertices[(1 << dir) | (i << ((dir + 1) % 3)) | (j << ((dir + 2) % 3))]));
-            }
-        }
-        glEnd();
-    }
-    m_texture->unbind();
+		QMatrix4x4 projection(moveToRectMatrix);
+		//qgluPerspective(projection,60.0, 1.0, 0.01, 10.0);
+		QMatrix4x4 modelview;
+		modelview.setToIdentity();
+		modelview.translate(0.0f, 0.0f, -1.5f);
+		modelview.rotate(ROTATE_SPEED_X * m_startTime.msecsTo(QTime::currentTime()), 1.0f, 0.0f, 0.0f);
+		modelview.rotate(ROTATE_SPEED_Y * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 1.0f, 0.0f);
+		modelview.rotate(ROTATE_SPEED_Z * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 0.0f, 1.0f);
+		int dt = m_startTime.msecsTo(QTime::currentTime());
+		if (dt < 500)
+			modelview.scale(dt / 500.0f, dt / 500.0f, dt / 500.0f);
 
-    //glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_COLOR_MATERIAL);
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_LIGHT0);
-    glDisable(GL_NORMALIZE);
+		QMatrix4x4 mvpmatrix = projection * modelview;
+		m_cubeProgram->setUniformValue("mvp_matrix", mvpmatrix);
+		//渲染管线只有一个纹理，指定着色器texture为0号纹理
+		m_cubeProgram->setUniformValue("texture", m_texture->textureId());
 
-    glPopMatrix();
+		// 使用索引缓冲数组渲染三角形
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, 0);
+		m_cubeProgram->release();
+		m_texture->unbind();
+	}
+	else
+	{
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadMatrixf(moveToRectMatrix);
+		QMatrix4x4 modelView;
+		qgluPerspective(modelView,60.0, 1.0, 0.01, 10.0);
 
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-	
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+
+		//glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_COLOR_MATERIAL);
+		glEnable(GL_NORMALIZE);
+
+		m_texture->bind();
+		glEnable(GL_TEXTURE_2D);
+
+		glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+		float lightColour[] = {1.0f, 1.0f, 1.0f, 1.0f};
+		float lightDir[] = {0.0f, 0.0f, 1.0f, 0.0f};
+		glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColour);
+		glLightfv(GL_LIGHT0, GL_POSITION, lightDir);
+		glEnable(GL_LIGHT0);
+
+		glTranslatef(0.0f, 0.0f, -1.5f);
+		glRotatef(ROTATE_SPEED_X * m_startTime.msecsTo(QTime::currentTime()), 1.0f, 0.0f, 0.0f);
+		glRotatef(ROTATE_SPEED_Y * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 1.0f, 0.0f);
+		glRotatef(ROTATE_SPEED_Z * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 0.0f, 1.0f);
+		{
+			int dt = m_startTime.msecsTo(QTime::currentTime());
+			if (dt < 500)
+				glScalef(dt / 500.0f, dt / 500.0f, dt / 500.0f);
+		}
+
+		int dataindex = 0;
+		for (int dir = 0; dir < 3; ++dir) 
+		{
+			glColor4f(1.0f, 1.0f, 1.0f, 1.0);
+
+			glBegin(GL_TRIANGLE_STRIP);
+			glNormal3fv(reinterpret_cast<float *>(&m_normals[2 * dir + 0]));
+			for (int i = 0; i < 2; ++i) {
+				for (int j = 0; j < 2; ++j) {
+					glTexCoord2fv(reinterpret_cast<float *>(&m_texCoords[(j << 1) | i]));
+					glVertex3fv(reinterpret_cast<float *>(&m_vertices[(i << ((dir + 2) % 3)) | (j << ((dir + 1) % 3))]));
+				}
+			}
+			glEnd();
+
+			glBegin(GL_TRIANGLE_STRIP);
+			glNormal3fv(reinterpret_cast<float *>(&m_normals[2 * dir + 1]));
+			for (int i = 0; i < 2; ++i) {
+				for (int j = 0; j < 2; ++j) {
+					glTexCoord2fv(reinterpret_cast<float *>(&m_texCoords[(j << 1) | i]));
+					glVertex3fv(reinterpret_cast<float *>(&m_vertices[(1 << dir) | (i << ((dir + 1) % 3)) | (j << ((dir + 2) % 3))]));
+				}
+			}
+			glEnd();
+		}
+		m_texture->unbind();
+
+		//glDisable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_LIGHTING);
+		glDisable(GL_COLOR_MATERIAL);
+		glDisable(GL_TEXTURE_2D);
+		glDisable(GL_LIGHT0);
+		glDisable(GL_NORMALIZE);
+
+		glPopMatrix();
+
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+	}
     painter->endNativePainting();
 
     ItemBase::paint(painter, option, widget);

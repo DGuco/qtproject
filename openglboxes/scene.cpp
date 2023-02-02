@@ -613,6 +613,26 @@ void Scene::initGL()
     m_vertexShader = new QGLShader(QGLShader::Vertex);
     m_vertexShader->compileSourceFile(QLatin1String(":/res/boxes/basic.vsh"));
 
+	//天空盒渲染程序准备
+	{
+		QStringList list;
+		list << ":/res/boxes/cubemap_posx.jpg" << ":/res/boxes/cubemap_negx.jpg" << ":/res/boxes/cubemap_posy.jpg"
+			<< ":/res/boxes/cubemap_negy.jpg" << ":/res/boxes/cubemap_posz.jpg" << ":/res/boxes/cubemap_negz.jpg";
+		//初始化立方体贴图
+		m_environment = new GLTextureCube(list, qMin(1024, m_maxTextureSize));
+		//编译天空盒着色器
+		m_environmentShader = new QGLShader(QGLShader::Fragment);
+		m_environmentShader->compileSourceFile(QLatin1String(":/res/boxes/skybox.fsh"));
+		//创建天空盒可编程渲染管线程序
+		m_environmentProgram = new QGLShaderProgram;
+		//顶点着色器
+		m_environmentProgram->addShader(m_vertexShader);
+		//像素着色器
+		m_environmentProgram->addShader(m_environmentShader);
+		//链接程序
+		m_environmentProgram->link();
+	}
+
 	//噪声数据
 	{
 		const int NOISE_SIZE = 128;
@@ -636,26 +656,6 @@ void Scene::initGL()
 		}
 		m_noise->load(NOISE_SIZE, NOISE_SIZE, NOISE_SIZE, data);
 		delete[] data;
-	}
-
-	//天空盒渲染程序准备
-	{
-		QStringList list;
-		list << ":/res/boxes/cubemap_posx.jpg" << ":/res/boxes/cubemap_negx.jpg" << ":/res/boxes/cubemap_posy.jpg"
-			<< ":/res/boxes/cubemap_negy.jpg" << ":/res/boxes/cubemap_posz.jpg" << ":/res/boxes/cubemap_negz.jpg";
-		//初始化立方体贴图
-		m_environment = new GLTextureCube(list, qMin(1024, m_maxTextureSize));
-		//编译天空盒着色器
-		m_environmentShader = new QGLShader(QGLShader::Fragment);
-		m_environmentShader->compileSourceFile(QLatin1String(":/res/boxes/skybox.fsh"));
-		//创建天空盒可编程渲染管线程序
-		m_environmentProgram = new QGLShaderProgram;
-		//顶点着色器
-		m_environmentProgram->addShader(m_vertexShader);
-		//像素着色器
-		m_environmentProgram->addShader(m_environmentShader);
-		//链接程序
-		m_environmentProgram->link();
 	}
 
 	//所有的boxes设置
@@ -740,7 +740,7 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
     QMatrix4x4 invView = (view_mat * model_mat).inverted();
     // If multi-texturing is supported, use three saplers.
     if (glActiveTexture) {
-		//设置texture0当前选择的纹理
+		//设置texture0当前选择的纹理(GL_TEXTURE?需要跟m_programs[i]->setUniformValue("tex", GLint(0))第二个参数的数保持一致)
         glActiveTexture(GL_TEXTURE0);
         m_textures[m_currentTexture]->bind();
 		//天空壳纹理
@@ -756,31 +756,34 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 	glDisable(GL_LIGHTING);
 	glDisable(GL_CULL_FACE);
 
-    // Don't render the environment if the environment texture can't be set for the correct sampler.
-    if (glActiveTexture) 
+	//天空壳
 	{
-		QMatrix4x4 skymodel_mat(model_mat);
-		skymodel_mat.scale(20.0f, 20.0f, 20.0f);
-		QMatrix3x3 normal_mat = (view_mat * skymodel_mat).normalMatrix();
+		if (glActiveTexture)
+		{
+			QMatrix4x4 skymodel_mat(model_mat);
+			skymodel_mat.scale(20.0f, 20.0f, 20.0f);
+			QMatrix3x3 normal_mat = (view_mat * skymodel_mat).normalMatrix();
 
-		m_environment->bind();
-        m_environmentProgram->bind();
-		//告诉着色器环境纹理使用第二个纹理
-		m_environmentProgram->setUniformValue("env", m_environment->textureId());
-		m_environmentProgram->setUniformValue("projection_mat", projection_mat);
-		m_environmentProgram->setUniformValue("view_mat", view_mat);
-		m_environmentProgram->setUniformValue("model_mat", skymodel_mat);
-		m_environmentProgram->setUniformValue("normal_mat", normal_mat);
-		m_environmentProgram->setUniformValue("lightview", lightview);
-		setLights(m_environmentProgram);
-        m_box->draw(m_environmentProgram);
-        m_environmentProgram->release();
-        m_environment->unbind();
-    }
+			m_environmentProgram->bind();
+			//告诉着色器环境纹理使用第二个纹理
+			m_environmentProgram->setUniformValue("env", m_environment->textureId());
+			m_environmentProgram->setUniformValue("projection_mat", projection_mat);
+			m_environmentProgram->setUniformValue("view_mat", view_mat);
+			m_environmentProgram->setUniformValue("model_mat", skymodel_mat);
+			m_environmentProgram->setUniformValue("normal_mat", normal_mat);
+			m_environmentProgram->setUniformValue("lightview", lightview);
+			setLights(m_environmentProgram);
+			m_box->draw(m_environmentProgram);
+			m_environmentProgram->release();
+			m_environment->unbind();
+		}
+
+	}
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_LIGHTING);
 
+	//渲染环形立方体
     for (int i = 0; i < m_programs.size(); ++i) 
 	{
         if (i == excludeBox)
@@ -795,12 +798,12 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 		//法线矩阵
 		QMatrix3x3 normal_mat = (view_mat * cubemodel_mat).normalMatrix();
 
-        if (glActiveTexture) {
-            if (m_cubemaps[i])
-                m_cubemaps[i]->bind();
-            else
-                m_environment->bind();
-        }
+//         if (glActiveTexture) {
+//             if (m_cubemaps[i])
+//                 m_cubemaps[i]->bind();
+//             else
+//                 m_environment->bind();
+//         }
         m_programs[i]->bind();
 		//告诉着色器环境纹理
         m_programs[i]->setUniformValue("tex", GLint(0));
@@ -827,6 +830,7 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
         }
     }
 
+	//渲染中心的立方体
     if (-1 != excludeBox) 
 	{
 		QMatrix4x4 cubemodel_mat;
@@ -834,9 +838,9 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 		cubemodel_mat = model_mat * cubemodel_mat;
 		QMatrix3x3 normal_mat = (view_mat * cubemodel_mat).normalMatrix();
 
-        if (glActiveTexture) {
+		if (glActiveTexture) {
 			m_mainCubemap->bind();
-        }
+		}
 
         m_programs[m_currentShader]->bind();
         m_programs[m_currentShader]->setUniformValue("tex", GLint(0));
