@@ -717,6 +717,8 @@ void Scene::initGL()
 			m_renderOptions->addShader(file.baseName());
 
 			program->bind();
+
+			//需要天空壳纹理的cube
 			if (program->uniformLocation("env") != -1)
 			{
 				m_cubemaps << new GLRenderTargetCube(qMin(256, m_maxTextureSize));
@@ -798,12 +800,12 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 		//法线矩阵
 		QMatrix3x3 normal_mat = (view_mat * cubemodel_mat).normalMatrix();
 
-//         if (glActiveTexture) {
-//             if (m_cubemaps[i])
-//                 m_cubemaps[i]->bind();
-//             else
-//                 m_environment->bind();
-//         }
+        if (glActiveTexture) {
+            if (m_cubemaps[i])
+                m_cubemaps[i]->bind();
+            else
+                m_environment->bind();
+        }
         m_programs[i]->bind();
 		//告诉着色器环境纹理
         m_programs[i]->setUniformValue("tex", GLint(0));
@@ -918,6 +920,7 @@ void Scene::renderCubemaps()
 	QMatrix4x4 projection(mat);
     QVector3D center;
 
+	//渲染有反射效果的cube
     for (int i = 1; i < m_cubemaps.size(); i++) 
 	{
         if (NULL == m_cubemaps[i])
@@ -939,7 +942,7 @@ void Scene::renderCubemaps()
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             renderBoxes(projection,mat, QMatrix4x4(), i);
 
-			//激活默认帧缓存，渲染窗口
+			//激活默认帧缓存
             m_cubemaps[i]->end();
         }
     }
@@ -972,7 +975,7 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
 		//初始化opengl参数
 		initOpenGLParams();
 
-		renderCubemaps();
+		//renderCubemaps();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		//投影变换矩阵
 		QMatrix4x4 projection;

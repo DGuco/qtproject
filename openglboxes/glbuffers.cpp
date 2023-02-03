@@ -299,7 +299,7 @@ void GLRenderTargetCube::begin(int face)
         glFramebufferTexture2DEXT && glFramebufferRenderbufferEXT, return)
 
     m_fbo.setAsRenderTarget(true);
-	//纹理附加到帧缓冲
+	//附加纹理附件到帧缓冲
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, m_texture, 0);
 	//附加这个渲染缓冲对象
     glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, m_fbo.m_depthBuffer);
