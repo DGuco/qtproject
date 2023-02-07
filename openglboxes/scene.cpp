@@ -597,8 +597,6 @@ Scene::~Scene()
         delete m_vertexShader;
     foreach (QGLShader *shader, m_fragmentShaders)
         if (shader) delete shader;
-    foreach (GLRenderTargetCube *rt, m_cubemaps)
-        if (rt) delete rt;
     if (m_environmentShader)
         delete m_environmentShader;
     if (m_environmentProgram)
@@ -717,16 +715,6 @@ void Scene::initGL()
 			m_renderOptions->addShader(file.baseName());
 
 			program->bind();
-
-			//需要天空壳纹理的cube
-			if (program->uniformLocation("env") != -1)
-			{
-				m_cubemaps << new GLRenderTargetCube(qMin(256, m_maxTextureSize));
-			}
-			else
-			{
-				m_cubemaps << NULL;
-			}
 			program->release();
 		}
 
@@ -801,10 +789,7 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 		QMatrix3x3 normal_mat = (view_mat * cubemodel_mat).normalMatrix();
 
         if (glActiveTexture) {
-            if (m_cubemaps[i])
-                m_cubemaps[i]->bind();
-            else
-                m_environment->bind();
+			m_environment->bind();
         }
         m_programs[i]->bind();
 		//告诉着色器环境纹理
@@ -825,10 +810,7 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
         m_programs[i]->release();
 
         if (glActiveTexture) {
-            if (m_cubemaps[i])
-                m_cubemaps[i]->unbind();
-            else
-                m_environment->unbind();
+			m_environment->unbind();
         }
     }
 
@@ -913,56 +895,6 @@ void Scene::setLights(QGLShaderProgram* program)
 	}
 }
 
-void Scene::renderCubemaps()
-{
-    QMatrix4x4 mat;
-    GLRenderTargetCube::getProjectionMatrix(mat, 0.1f, 100.0f);
-	QMatrix4x4 projection(mat);
-    QVector3D center;
-
-	//渲染有反射效果的cube
-    for (int i = 1; i < m_cubemaps.size(); i++) 
-	{
-        if (NULL == m_cubemaps[i])
-            continue;
-
-        float angle = 2.0f * PI * i / m_cubemaps.size();
-
-        center = m_trackBalls[1].rotation().rotatedVector(QVector3D(std::cos(angle), std::sin(angle), 0.0f));
-
-        for (int face = 0; face < 6; ++face) 
-		{
-			//激活自定义帧缓存
-            m_cubemaps[i]->begin(face);
-
-            GLRenderTargetCube::getViewMatrix(mat, face);
-            QVector4D v = QVector4D(-center.x(), -center.y(), -center.z(), 1.0);
-            mat.setColumn(3, mat * v);
-
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            renderBoxes(projection,mat, QMatrix4x4(), i);
-
-			//激活默认帧缓存
-            m_cubemaps[i]->end();
-        }
-    }
-
-    for (int face = 0; face < 6; ++face) {
-        m_mainCubemap->begin(face);
-        GLRenderTargetCube::getViewMatrix(mat, face);
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		renderBoxes(projection, mat, QMatrix4x4(), -1);
-
-        m_mainCubemap->end();
-    }
-
-    glPopMatrix();
-
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-}
-
 void Scene::drawBackground(QPainter *painter, const QRectF &rect)
 {
     float width = float(painter->device()->width());
@@ -975,7 +907,6 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
 		//初始化opengl参数
 		initOpenGLParams();
 
-		//renderCubemaps();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		//投影变换矩阵
 		QMatrix4x4 projection;
