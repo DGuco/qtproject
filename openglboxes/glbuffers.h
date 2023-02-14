@@ -143,51 +143,25 @@ public:
     {
         GLBUFFERS_ASSERT_OPENGL("GLVertexBuffer::GLVertexBuffer", glGenBuffers && glBindBuffer && glBufferData, return)
 
+		//生成顶点缓冲对象
         glGenBuffers(1, &m_buffer);
+		//把新创建的缓冲绑定到GL_ARRAY_BUFFER目标上
         glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
+		//为缓冲对象（VBO，IBO 等）分配空间
         glBufferData(GL_ARRAY_BUFFER, (m_length = length) * sizeof(T), data, mode);
-
-		m_glbuffer.create();
-		m_glbuffer.bind();
-		m_glbuffer.allocate(data, (m_length = length) * sizeof(T));
 	}
 
     ~GLVertexBuffer()
     {
         GLBUFFERS_ASSERT_OPENGL("GLVertexBuffer::~GLVertexBuffer", glDeleteBuffers, return)
-
-        glDeleteBuffers(1, &m_buffer);
-		m_glbuffer.destroy();
+		glDeleteBuffers(1, &m_buffer);
     }
 
     void bind(QGLShaderProgram *program)
     {
+		//设置顶点属性指针告诉OpenGL该如何解析顶点数据
         GLBUFFERS_ASSERT_OPENGL("GLVertexBuffer::bind", glBindBuffer, return)
-        
 		glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
-        for (VertexDescription *desc = T::description; desc->field != VertexDescription::Null; ++desc) 
-		{
-            switch (desc->field) {
-            case VertexDescription::Position:
-                glVertexPointer(desc->count, desc->type, sizeof(T), BUFFER_OFFSET(desc->offset));
-                glEnableClientState(GL_VERTEX_ARRAY);
-                break;
-            case VertexDescription::TexCoord:
-                glTexCoordPointer(desc->count, desc->type, sizeof(T), BUFFER_OFFSET(desc->offset));
-                glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                break;
-            case VertexDescription::Normal:
-                glNormalPointer(desc->type, sizeof(T), BUFFER_OFFSET(desc->offset));
-                glEnableClientState(GL_NORMAL_ARRAY);
-                break;
-            case VertexDescription::Color:
-                glColorPointer(desc->count, desc->type, sizeof(T), BUFFER_OFFSET(desc->offset));
-                glEnableClientState(GL_COLOR_ARRAY);
-                break;
-            default:
-                break;
-            }
-        }
 
 		int offset = 0;
 		int vertexLocation = program->attributeLocation("a_position");
@@ -213,26 +187,7 @@ public:
     void unbind(QGLShaderProgram *program)
     {
         GLBUFFERS_ASSERT_OPENGL("GLVertexBuffer::unbind", glBindBuffer, return)
-
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-        for (VertexDescription *desc = T::description; desc->field != VertexDescription::Null; ++desc) {
-            switch (desc->field) {
-            case VertexDescription::Position:
-                glDisableClientState(GL_VERTEX_ARRAY);
-                break;
-            case VertexDescription::TexCoord:
-                glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-                break;
-            case VertexDescription::Normal:
-                glDisableClientState(GL_NORMAL_ARRAY);
-                break;
-            case VertexDescription::Color:
-                glDisableClientState(GL_COLOR_ARRAY);
-                break;
-            default:
-                break;
-            }
-        }
     }
 
     int length() const {return m_length;}
@@ -242,9 +197,10 @@ public:
         GLBUFFERS_ASSERT_OPENGL("GLVertexBuffer::lock", glBindBuffer && glMapBuffer, return 0)
 
         glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
-        //glBufferData(GL_ARRAY_BUFFER, m_length, NULL, m_mode);
+		//获取vbo的显存地址
         GLvoid* buffer = glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE);
         m_failed = (buffer == 0);
+		//返回vbo的显存地址，供cpu修改显存数据
         return reinterpret_cast<T *>(buffer);
     }
 
@@ -262,7 +218,6 @@ public:
     }
 
 private:
-	QOpenGLBuffer m_glbuffer;
     int m_length, m_mode;
     GLuint m_buffer;
     bool m_failed;
@@ -279,22 +234,18 @@ public:
         , m_failed(false)
     {
         GLBUFFERS_ASSERT_OPENGL("GLIndexBuffer::GLIndexBuffer", glGenBuffers && glBindBuffer && glBufferData, return)
-
+		//生成元素缓冲对象EBO(索引缓冲对象IBO)
         glGenBuffers(1, &m_buffer);
+		//把新创建的缓冲绑定到GL_ELEMENT_ARRAY_BUFFER目标上
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_buffer);
+		//为索引缓冲对象（VBO，IBO 等）分配空间
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, (m_length = length) * sizeof(T), data, mode);
-
-		m_glbuffer.create();
-		m_glbuffer.bind();
-		m_glbuffer.allocate(data, (m_length = length) * sizeof(T));
 	}
 
     ~GLIndexBuffer()
     {
         GLBUFFERS_ASSERT_OPENGL("GLIndexBuffer::~GLIndexBuffer", glDeleteBuffers, return)
-
         glDeleteBuffers(1, &m_buffer);
-		m_glbuffer.destroy();
     }
 
     void bind()
@@ -337,7 +288,6 @@ public:
     }
 
 private:
-	QOpenGLBuffer m_glbuffer;
     int m_length, m_mode;
     GLuint m_buffer;
     bool m_failed;
