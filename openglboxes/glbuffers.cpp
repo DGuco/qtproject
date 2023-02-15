@@ -10,7 +10,7 @@ void qgluPerspective(QMatrix4x4 &projection,GLdouble fovy, GLdouble aspect, GLdo
     const GLdouble xmin = ymin * aspect;
     const GLdouble xmax = ymax * aspect;
 	projection.frustum(xmin, xmax, ymin, ymax, zNear, zFar);
-	glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
+	//glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
 }
 
 //============================================================================//

@@ -1,4 +1,5 @@
 #include "qtbox.h"
+#include "roundedbox.h"
 #include "glextensions.h"
 
 const qreal ROTATE_SPEED_X = 30.0 / 1000.0;
@@ -256,123 +257,77 @@ bool ItemBase::isInResizeArea(const QPointF &pos)
 
 QtBox::QtBox(int size, int x, int y) : ItemBase(size, x, y), m_texture(0)
 {
-	bool ret = arrayBuf.create();
-	ret = indexBuf.create();
+	m_texture = NULL;
+	m_vertexShader = NULL;
+	m_fragmentShader = NULL;
+	m_cubeProgram = NULL;
+	m_box = NULL;
+	m_arrayBuf = NULL;
+	m_indexBuf = NULL;
+	for (int i = 0; i < 8; ++i) 
+	{
+		m_vertices[i].setX(i & 1 ? 0.5f : -0.5f);
+		m_vertices[i].setY(i & 2 ? 0.5f : -0.5f);
+		m_vertices[i].setZ(i & 4 ? 0.5f : -0.5f);
+	}
+	
+	for (int i = 0; i < 4; ++i) 
+	{
+		m_texCoords[i].setX(i & 1 ? 1.0f : 0.0f);
+		m_texCoords[i].setY(i & 2 ? 1.0f : 0.0f);
+	}
+	m_normals[0] = QVector3D(-1.0f, 0.0f, 0.0f);
+	m_normals[1] = QVector3D(1.0f, 0.0f, 0.0f);
+	m_normals[2] = QVector3D(0.0f, -1.0f, 0.0f);
+	m_normals[3] = QVector3D(0.0f, 1.0f, 0.0f);
+	m_normals[4] = QVector3D(0.0f, 0.0f, -1.0f);
+	m_normals[5] = QVector3D(0.0f, 0.0f, 1.0f);
 
-	//初始化顶点信息
-    for (int i = 0; i < 8; ++i) 
+	m_bDebug = true;
+	if (m_bDebug)
 	{
-        m_vertices[i].setX(i & 1 ? 0.5f : -0.5f);
-        m_vertices[i].setY(i & 2 ? 0.5f : -0.5f);
-        m_vertices[i].setZ(i & 4 ? 0.5f : -0.5f);
-    }
-	//初始化纹理坐标
-    for (int i = 0; i < 4; ++i) 
-	{
-        m_texCoords[i].setX(i & 1 ? 1.0f : 0.0f);
-        m_texCoords[i].setY(i & 2 ? 1.0f : 0.0f);
-    }
-	//初始化法线向量
-    m_normals[0] = QVector3D(-1.0f, 0.0f, 0.0f);
-    m_normals[1] = QVector3D(1.0f, 0.0f, 0.0f);
-    m_normals[2] = QVector3D(0.0f, -1.0f, 0.0f);
-    m_normals[3] = QVector3D(0.0f, 1.0f, 0.0f);
-    m_normals[4] = QVector3D(0.0f, 0.0f, -1.0f);
-    m_normals[5] = QVector3D(0.0f, 0.0f, 1.0f);
+		//生成有圆角的立方体的顶点数组和索引数组并绑定
+		//m_box = new GLRoundedBox(0.25f/*圆角大小*/, 1.0f/*缩放比*/, 20/*每一个圆角的顶点数，顶点数越多越圆润*/);
+		m_arrayBuf = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+		m_arrayBuf->create();
+		m_indexBuf = new QOpenGLBuffer(QOpenGLBuffer::IndexBuffer);
+		m_indexBuf->create();
 
-	int dataindex = 0;
-	for (int dir = 0; dir < 3; ++dir)
-	{
-		for (int i = 0; i < 2; ++i) {
-			for (int j = 0; j < 2; ++j) {
-				m_renderData[dataindex].normal = m_normals[2 * dir + 0];
-				m_renderData[dataindex].texCoord = m_texCoords[(j << 1) | i];
-				m_renderData[dataindex].position = m_vertices[(i << ((dir + 2) % 3)) | (j << ((dir + 1) % 3))];
-				dataindex++;
-			}
+		//编译顶点着色器
+		m_vertexShader = new QGLShader(QGLShader::Vertex);
+		m_vertexShader->compileSourceFile(QLatin1String(":/res/boxes/box_shader.vsh"));
+		//编译顶点着色器
+		m_fragmentShader = new QGLShader(QGLShader::Fragment);
+		m_fragmentShader->compileSourceFile(QLatin1String(":/res/boxes/box_shader.fsh"));
+
+		m_cubeProgram = new QGLShaderProgram();
+		m_cubeProgram->addShader(m_vertexShader);
+		m_cubeProgram->addShader(m_fragmentShader);
+
+		if (!m_cubeProgram->link())
+		{
+			qWarning("Failed to compile and link shader program");
+			qWarning("Vertex shader log:");
+			qWarning() << m_vertexShader->log();
+			qWarning() << "Fragment shader log:";
+			qWarning() << m_fragmentShader->log();
+			qWarning("Shader program log:");
+			qWarning() << m_cubeProgram->log();
+			exit(1);
 		}
 
-		for (int i = 0; i < 2; ++i) {
-			for (int j = 0; j < 2; ++j) {
-				m_renderData[dataindex].normal = m_normals[2 * dir + 0];
-				m_renderData[dataindex].texCoord = m_texCoords[(j << 1) | i];
-				m_renderData[dataindex].position = m_vertices[(i << ((dir + 2) % 3)) | (j << ((dir + 1) % 3))];
-				dataindex++;
-			}
-		}
+		// 绑定顶点数组 VBO 0
+		m_arrayBuf->bind();
+		//申请空间
+		m_arrayBuf->allocate(NULL, 24 * sizeof(VertexData));
+
+		// 绑定索引数组 VBO 1
+		m_indexBuf->bind();
+		//申请空间
+		m_indexBuf->allocate(NULL, 36 * sizeof(GLushort));
 	}
 
-	VertexData vertices[24] =
-	{
-		////////////////////////////////CUBE1//////////////////////////////////////
-		// 点数4的面
-		{ QVector3D(-1.0f, -1.0f,  1.0f), QVector2D(0.0f, 0.0f),	QVector3D(0.0f, 0.0f,1.0f) },
-		{ QVector3D(1.0f, -1.0f,  1.0f),  QVector2D((1 / 3.0f), 0.0f),QVector3D(0.0f, 0.0f,1.0f) },
-		{ QVector3D(-1.0f,  1.0f,  1.0f), QVector2D(0.0f,(1 / 2.0f)),QVector3D(0.0f, 0.0f,1.0f) },
-		{ QVector3D(1.0f,  1.0f,  1.0f),  QVector2D((1 / 3.0f),(1 / 2.0f)),QVector3D(0.0f, 0.0f,1.0f) },
-		// 点数1的面
-		{ QVector3D(1.0f, -1.0f,  1.0f),  QVector2D(0.0f,(1 / 2.0f)), QVector3D(1.0f, 0.0f,0.0f) },
-		{ QVector3D(1.0f, -1.0f, -1.0f),  QVector2D((1 / 3.0f),(1 / 2.0f)), QVector3D(1.0f, 0.0f,0.0f) },
-		{ QVector3D(1.0f,  1.0f,  1.0f),  QVector2D(0.0f, 1.0f), QVector3D(1.0f, 0.0f,0.0f) },
-		{ QVector3D(1.0f,  1.0f, -1.0f),  QVector2D((1 / 3.0f), 1.0f), QVector3D(1.0f, 0.0f,0.0f) },
-		//点数3的面
-		{ QVector3D(1.0f, -1.0f, -1.0f),  QVector2D((2 / 3.0f),(1 / 2.0f)), QVector3D(0.0f, 0.0f,-1.0f) },
-		{ QVector3D(-1.0f, -1.0f, -1.0f), QVector2D(1.0f,(1 / 2.0f)), QVector3D(0.0f, 0.0f,-1.0f) },
-		{ QVector3D(1.0f,  1.0f, -1.0f),  QVector2D((2 / 3.0f), 1.0f), QVector3D(0.0f, 0.0f,-1.0f) },
-		{ QVector3D(-1.0f,  1.0f, -1.0f), QVector2D(1.0f, 1.0f), QVector3D(0.0f, 0.0f,-1.0f) },
-		//点数6的面
-		{ QVector3D(-1.0f, -1.0f, -1.0f), QVector2D((2 / 3.0f), 0.0f), QVector3D(-1.0f, 0.0f,0.0f) },
-		{ QVector3D(-1.0f, -1.0f,  1.0f), QVector2D(1.0f, 0.0f), QVector3D(-1.0f, 0.0f,0.0f) },
-		{ QVector3D(-1.0f,  1.0f, -1.0f), QVector2D((2 / 3.0f),(1 / 2.0f)), QVector3D(-1.0f, 0.0f,0.0f) },
-		{ QVector3D(-1.0f,  1.0f,  1.0f), QVector2D(1.0f,(1 / 2.0f)), QVector3D(-1.0f, 0.0f,0.0f) },
-		//点数5的面
-		{ QVector3D(-1.0f, -1.0f, -1.0f), QVector2D((1 / 3.0f), 0.0f), QVector3D(0.0f, -1.0f,0.0f) },
-		{ QVector3D(1.0f, -1.0f, -1.0f), QVector2D((2 / 3.0f), 0.0f), QVector3D(0.0f, -1.0f,0.0f) },
-		{ QVector3D(-1.0f, -1.0f,  1.0f), QVector2D((1 / 3.0f),(1 / 2.0f)), QVector3D(0.0f, -1.0f,0.0f) },
-		{ QVector3D(1.0f, -1.0f,  1.0f), QVector2D((2 / 3.0f),(1 / 2.0f)), QVector3D(0.0f, -1.0f,0.0f) },
-		//点数2的面
-		{ QVector3D(-1.0f,  1.0f,  1.0f), QVector2D((1 / 3.0f),(1 / 2.0f)), QVector3D(0.0f, 1.0f,0.0f) },
-		{ QVector3D(1.0f,  1.0f,  1.0f), QVector2D((2 / 3.0f),(1 / 2.0f)), QVector3D(0.0f, 1.0f,0.0f) },
-		{ QVector3D(-1.0f,  1.0f, -1.0f), QVector2D((1 / 3.0f), 1.0f), QVector3D(0.0f, 1.0f,0.0f) },
-		{ QVector3D(1.0f,  1.0f, -1.0f), QVector2D((2 / 3.0f), 1.0f), QVector3D(0.0f, 1.0f,0.0f) },
-	};
-
-	// 绑定顶点数组 VBO 0
-	arrayBuf.bind();
-	arrayBuf.allocate(vertices, 24 * sizeof(VertexData));
-
-	GLushort indices[36] =
-	{
-		/**
-		* 每两个三角形渲染一个面
-		* 注意节点顺序，因为开启了遮挡剔除(glEnable(GL_CULL_FACE)),opengl是根据顶点顺序决定三角形法线方向的,顺时针顺序算出来
-		* 三角形是朝里的就不画了,所以 0 3 1 会导致该三角形不显示,后面的三角形同样的道理注意顶点顺序
-		*/
-		//Face 0
-		0,  1 , 3, //triangle1
-		2,  0,  3, //triangle2
-		//Face 1 
-		4,  5,  7, //triangle3
-		6,  4,  7, //triangle4
-		//Face 2 
-		8,  9,  11, //triangle5
-		10,  8,  11, //triangle6
-		//Face 3 
-		12,  13,  15, //triangle7
-		14,  12,  15, //triangle8
-		//Face 4 
-		16,  17,  19, //triangle9
-		18,  16,  19, //triangle10
-		//Face 5 
-		20,  21,  23, //triangle11
-		22,  20,  23, //triangle12
-	};
-	// 绑定索引数组 VBO 1
- 	indexBuf.bind();
- 	indexBuf.allocate(indices, 36 * sizeof(GLushort));
-
 	m_texture = new GLTexture2D(":/res/boxes/qt-logo.jpg", 64, 64);
-	initGl();
 }
 
 QtBox::~QtBox()
@@ -389,36 +344,67 @@ QtBox::~QtBox()
 	if (m_cubeProgram)
 		delete m_cubeProgram;
 
-	arrayBuf.destroy();
-    indexBuf.destroy();
+	if (m_arrayBuf)
+	{
+		delete m_arrayBuf;
+	}
+
+	if (m_indexBuf)
+	{
+		delete m_indexBuf;
+	}
 }
 
 void QtBox::initGl()
 {
-	//编译顶点着色器
-	m_vertexShader = new QOpenGLShader(QOpenGLShader::Vertex);
-	m_vertexShader->compileSourceFile(QLatin1String(":/res/boxes/box_shader.vsh"));
-	//编译顶点着色器
-	m_fragmentShader = new QOpenGLShader(QOpenGLShader::Fragment);
-	m_fragmentShader->compileSourceFile(QLatin1String(":/res/boxes/box_shader.fsh"));
+	int dataindex = 0;
+	int iindex = 0;
+	// 绑定顶点数组 VBO 0
+	m_arrayBuf->bind();
+	VertexData* vertices = (VertexData*)m_arrayBuf->map(QOpenGLBuffer::ReadWrite);
+	// 绑定索引数组 VBO 1
+	m_indexBuf->bind();
+	GLushort* indices = (GLushort*)m_indexBuf->map(QOpenGLBuffer::ReadWrite);
 
-	m_cubeProgram = new QOpenGLShaderProgram();
-	m_cubeProgram->addShader(m_vertexShader);
-	m_cubeProgram->addShader(m_fragmentShader);
-
-	if (!m_cubeProgram->link())
+	for (int dir = 0; dir < 3; ++dir)
 	{
-		qWarning("Failed to compile and link shader program");
-		qWarning("Vertex shader log:");
-		qWarning() << m_vertexShader->log();
-		qWarning() << "Fragment shader log:";
-		qWarning() << m_fragmentShader->log();
-		qWarning("Shader program log:");
-		qWarning() << m_cubeProgram->log();
-		exit(1);
+		indices[iindex++] = dataindex;
+		indices[iindex++] = dataindex + 1;
+		indices[iindex++] = dataindex + 2;
+		indices[iindex++] = dataindex + 2;
+		indices[iindex++] = dataindex + 3;
+		indices[iindex++] = dataindex;
+		for (int i = 0; i < 2; ++i)
+		{
+			for (int j = 0; j < 2; ++j)
+			{
+				vertices[dataindex].normal = m_normals[2 * dir + 0];
+				vertices[dataindex].texCoord = m_texCoords[(j << 1) | i];
+				vertices[dataindex].position = m_vertices[(i << ((dir + 2) % 3)) | (j << ((dir + 1) % 3))];
+				dataindex++;
+			}
+		}
+		indices[iindex++] = dataindex;
+		indices[iindex++] = dataindex + 1;
+		indices[iindex++] = dataindex + 2;
+		indices[iindex++] = dataindex + 2;
+		indices[iindex++] = dataindex + 3;
+		indices[iindex++] = dataindex;
+		for (int i = 0; i < 2; ++i)
+		{
+			for (int j = 0; j < 2; ++j)
+			{
+				vertices[dataindex].normal = m_normals[2 * dir + 1];
+				vertices[dataindex].texCoord = m_texCoords[(j << 1) | i];
+				vertices[dataindex].position = m_vertices[(1 << dir) | (i << ((dir + 1) % 3)) | (j << ((dir + 2) % 3))];
+				dataindex++;
+			}
+		}
 	}
+	m_arrayBuf->unmap();
+	m_indexBuf->unmap();
+	
 	quintptr offset = 0;
-
 	//告诉opengl读取顶点坐标缓存数组的格式:类型float,每个数据大小sizeof(VertexData),
 	//顶点坐标在每个数据中的偏移0,数据大小3个float,
 	int vertexLocation = m_cubeProgram->attributeLocation("a_position");
@@ -472,33 +458,42 @@ void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 	glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_NORMALIZE);
 
-	bool debug = 0;
-	if (debug)
+	if (m_bDebug)
 	{
+		initGl();
 		m_texture->bind();
 		glEnable(GL_TEXTURE_2D);
-
 		m_cubeProgram->bind();
 
+		//投影矩阵
 		QMatrix4x4 projection(moveToRectMatrix);
-		//qgluPerspective(projection,60.0, 1.0, 0.01, 10.0);
-		QMatrix4x4 modelview;
-		modelview.setToIdentity();
-		modelview.translate(0.0f, 0.0f, -1.5f);
-		modelview.rotate(ROTATE_SPEED_X * m_startTime.msecsTo(QTime::currentTime()), 1.0f, 0.0f, 0.0f);
-		modelview.rotate(ROTATE_SPEED_Y * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 1.0f, 0.0f);
-		modelview.rotate(ROTATE_SPEED_Z * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 0.0f, 1.0f);
+		qgluPerspective(projection,60.0, 1.0, 0.01, 10.0);
+
+		//观察矩阵(眼睛的位置)
+		QMatrix4x4 view;
+		view.lookAt(QVector3D(0.0, 0.0, 2.0f), QVector3D(0, 0, -10), QVector3D(0, 1, 0));
+
+		//模型变换矩阵
+		QMatrix4x4 model;
+		model.setToIdentity();
+		model.translate(0.0f, 0.0f, -1.5f);
+		model.rotate(ROTATE_SPEED_X * m_startTime.msecsTo(QTime::currentTime()), 1.0f, 0.0f, 0.0f);
+		model.rotate(ROTATE_SPEED_Y * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 1.0f, 0.0f);
+		model.rotate(ROTATE_SPEED_Z * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 0.0f, 1.0f);
 		int dt = m_startTime.msecsTo(QTime::currentTime());
 		if (dt < 500)
-			modelview.scale(dt / 500.0f, dt / 500.0f, dt / 500.0f);
+			model.scale(dt / 500.0f, dt / 500.0f, dt / 500.0f);
 
-		QMatrix4x4 mvpmatrix = projection * modelview;
+		QMatrix4x4 mvpmatrix = projection * view * model;
 		m_cubeProgram->setUniformValue("mvp_matrix", mvpmatrix);
 		//渲染管线只有一个纹理，指定着色器texture为0号纹理
 		m_cubeProgram->setUniformValue("texture", m_texture->textureId());
 
-		// 使用索引缓冲数组渲染三角形
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, 0);
+		//m_box->draw(m_cubeProgram);
+		m_arrayBuf->bind();
+		m_indexBuf->bind();
+		glDrawElements(GL_TRIANGLE_STRIP,36, GL_UNSIGNED_SHORT, BUFFER_OFFSET(0));
+		
 		m_cubeProgram->release();
 		m_texture->unbind();
 	}
@@ -514,7 +509,7 @@ void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 		glPushMatrix();
 		glLoadIdentity();
 
-		//glEnable(GL_DEPTH_TEST);
+		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_LIGHTING);
 		glEnable(GL_COLOR_MATERIAL);
@@ -541,6 +536,7 @@ void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 		}
 
 		int dataindex = 0;
+		VertexData vertices[24] = { QVector3D(0,0,0)};
 		for (int dir = 0; dir < 3; ++dir) 
 		{
 			glColor4f(1.0f, 1.0f, 1.0f, 1.0);
@@ -549,6 +545,11 @@ void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 			glNormal3fv(reinterpret_cast<float *>(&m_normals[2 * dir + 0]));
 			for (int i = 0; i < 2; ++i) {
 				for (int j = 0; j < 2; ++j) {
+					vertices[dataindex].normal = m_normals[2 * dir + 0];
+					vertices[dataindex].texCoord = m_texCoords[(j << 1) | i];
+					vertices[dataindex].position = m_vertices[(i << ((dir + 2) % 3)) | (j << ((dir + 1) % 3))];
+					dataindex++;
+
 					glTexCoord2fv(reinterpret_cast<float *>(&m_texCoords[(j << 1) | i]));
 					glVertex3fv(reinterpret_cast<float *>(&m_vertices[(i << ((dir + 2) % 3)) | (j << ((dir + 1) % 3))]));
 				}
@@ -561,6 +562,10 @@ void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 				for (int j = 0; j < 2; ++j) {
 					glTexCoord2fv(reinterpret_cast<float *>(&m_texCoords[(j << 1) | i]));
 					glVertex3fv(reinterpret_cast<float *>(&m_vertices[(1 << dir) | (i << ((dir + 1) % 3)) | (j << ((dir + 2) % 3))]));
+					vertices[dataindex].normal = m_normals[2 * dir + 1];
+					vertices[dataindex].texCoord = m_texCoords[(j << 1) | i];
+					vertices[dataindex].position = m_vertices[(1 << dir) | (i << ((dir + 1) % 3)) | (j << ((dir + 2) % 3))];
+					dataindex++;
 				}
 			}
 			glEnd();

@@ -908,11 +908,13 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
 		initOpenGLParams();
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		//投影变换矩阵
+
+		//投影变换矩阵(有两种:正射投影和透视投影),这里我们创建一个透视投影
+		//https://learnopengl-cn.github.io/01%20Getting%20started/08%20Coordinate%20Systems/
 		QMatrix4x4 projection;
 		projection.perspective(60.0, width / height, 0.01, 20.0);
 
-		//观察变换矩阵
+		//观察矩阵(眼睛的位置)
 		QMatrix4x4 view;
 		view.lookAt(QVector3D(0.0, 0.0, 1.0), QVector3D(0, 0, -20), QVector3D(0, 1, 0));
 

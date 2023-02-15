@@ -4,6 +4,7 @@
 #include <QtWidgets>
 
 #include <QtGui/qvector3d.h>
+#include "roundedbox.h"
 #include "glbuffers.h"
 
 class ItemBase : public QGraphicsItem
@@ -66,12 +67,14 @@ private:
 	QVector2D m_texCoords[4];
     QVector3D m_normals[6];
     GLTexture *m_texture;
-	QOpenGLBuffer arrayBuf;
-	QOpenGLBuffer indexBuf;
-	QOpenGLShader *m_vertexShader;
-	QOpenGLShader *m_fragmentShader;
-	QOpenGLShaderProgram* m_cubeProgram;
+	QGLShader *m_vertexShader;
+	QGLShader *m_fragmentShader;
+	QGLShaderProgram* m_cubeProgram;
+	GLRoundedBox *m_box;
 	VertexData m_renderData[24];
+	QOpenGLBuffer *m_arrayBuf;
+	QOpenGLBuffer *m_indexBuf;
+	bool		m_bDebug;
 };
 
 class CircleItem : public ItemBase
