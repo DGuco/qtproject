@@ -319,12 +319,12 @@ QtBox::QtBox(int size, int x, int y) : ItemBase(size, x, y), m_texture(0)
 		// 绑定顶点数组 VBO 0
 		m_arrayBuf->bind();
 		//申请空间
-		m_arrayBuf->allocate(NULL, 24 * sizeof(VertexData));
+		m_arrayBuf->allocate(NULL, 4 * sizeof(VertexData));
 
 		// 绑定索引数组 VBO 1
 		m_indexBuf->bind();
 		//申请空间
-		m_indexBuf->allocate(NULL, 36 * sizeof(GLushort));
+		m_indexBuf->allocate(NULL, 4 * sizeof(GLushort));
 	}
 
 	m_texture = new GLTexture2D(":/res/boxes/qt-logo.jpg", 64, 64);
@@ -355,7 +355,7 @@ QtBox::~QtBox()
 	}
 }
 
-void QtBox::initGl()
+void QtBox::initGl(int dir, int index)
 {
 	int dataindex = 0;
 	int iindex = 0;
@@ -366,14 +366,12 @@ void QtBox::initGl()
 	m_indexBuf->bind();
 	GLushort* indices = (GLushort*)m_indexBuf->map(QOpenGLBuffer::ReadWrite);
 
-	for (int dir = 0; dir < 3; ++dir)
+	indices[iindex++] = dataindex;
+	indices[iindex++] = dataindex + 1;
+	indices[iindex++] = dataindex + 2;
+	indices[iindex++] = dataindex + 3;
+	if (index == 0)
 	{
-		indices[iindex++] = dataindex;
-		indices[iindex++] = dataindex + 1;
-		indices[iindex++] = dataindex + 2;
-		indices[iindex++] = dataindex + 2;
-		indices[iindex++] = dataindex + 3;
-		indices[iindex++] = dataindex;
 		for (int i = 0; i < 2; ++i)
 		{
 			for (int j = 0; j < 2; ++j)
@@ -384,12 +382,9 @@ void QtBox::initGl()
 				dataindex++;
 			}
 		}
-		indices[iindex++] = dataindex;
-		indices[iindex++] = dataindex + 1;
-		indices[iindex++] = dataindex + 2;
-		indices[iindex++] = dataindex + 2;
-		indices[iindex++] = dataindex + 3;
-		indices[iindex++] = dataindex;
+	}
+	else
+	{
 		for (int i = 0; i < 2; ++i)
 		{
 			for (int j = 0; j < 2; ++j)
@@ -401,6 +396,7 @@ void QtBox::initGl()
 			}
 		}
 	}
+
 	m_arrayBuf->unmap();
 	m_indexBuf->unmap();
 	
@@ -454,48 +450,58 @@ void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     painter->beginNativePainting();
 	glClear(GL_COLOR | GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_NORMALIZE);
 
 	if (m_bDebug)
 	{
-		initGl();
-		m_texture->bind();
-		glEnable(GL_TEXTURE_2D);
-		m_cubeProgram->bind();
+		for (int dir = 0; dir < 3; ++dir) 
+		{
+			for (int index = 0; index < 2; index++)
+			{
+				initGl(dir, index);
+				m_texture->bind();
+				glEnable(GL_TEXTURE_2D);
+				m_cubeProgram->bind();
 
-		//投影矩阵
-		QMatrix4x4 projection(moveToRectMatrix);
-		qgluPerspective(projection,60.0, 1.0, 0.01, 10.0);
+				//投影矩阵
+				QMatrix4x4 projection;
+				projection.perspective(60.0, 1.0, 0.01, 10.0);
+				//projection = projection * QMatrix4x4(moveToRectMatrix);
+				//qgluPerspective(projection,60.0, 1.0, 0.01, 10.0);
 
-		//观察矩阵(眼睛的位置)
-		QMatrix4x4 view;
-		view.lookAt(QVector3D(0.0, 0.0, 2.0f), QVector3D(0, 0, -10), QVector3D(0, 1, 0));
+				//观察矩阵(眼睛的位置)
+				QMatrix4x4 view;
+				view.lookAt(QVector3D(0.0, 0.0, 1.0f), QVector3D(0, 0, -1.0f), QVector3D(0, 1, 0));
 
-		//模型变换矩阵
-		QMatrix4x4 model;
-		model.setToIdentity();
-		model.translate(0.0f, 0.0f, -1.5f);
-		model.rotate(ROTATE_SPEED_X * m_startTime.msecsTo(QTime::currentTime()), 1.0f, 0.0f, 0.0f);
-		model.rotate(ROTATE_SPEED_Y * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 1.0f, 0.0f);
-		model.rotate(ROTATE_SPEED_Z * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 0.0f, 1.0f);
-		int dt = m_startTime.msecsTo(QTime::currentTime());
-		if (dt < 500)
-			model.scale(dt / 500.0f, dt / 500.0f, dt / 500.0f);
+				//模型变换矩阵
+				QMatrix4x4 model;
+				model.setToIdentity();
+				model = model * QMatrix4x4(moveToRectMatrix);
+				model.translate(0.0f, 0.0f, -1.5f);
+				model.rotate(ROTATE_SPEED_X * m_startTime.msecsTo(QTime::currentTime()), 1.0f, 0.0f, 0.0f);
+				model.rotate(ROTATE_SPEED_Y * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 1.0f, 0.0f);
+				model.rotate(ROTATE_SPEED_Z * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 0.0f, 1.0f);
+				int dt = m_startTime.msecsTo(QTime::currentTime());
+				if (dt < 500)
+					model.scale(dt / 500.0f, dt / 500.0f, dt / 500.0f);
 
-		QMatrix4x4 mvpmatrix = projection * view * model;
-		m_cubeProgram->setUniformValue("mvp_matrix", mvpmatrix);
-		//渲染管线只有一个纹理，指定着色器texture为0号纹理
-		m_cubeProgram->setUniformValue("texture", m_texture->textureId());
+				QMatrix4x4 mvpmatrix = projection * model;
+				m_cubeProgram->setUniformValue("mvp_matrix", mvpmatrix);
+				//渲染管线只有一个纹理，指定着色器texture为0号纹理
+				m_cubeProgram->setUniformValue("texture", 0);
 
-		//m_box->draw(m_cubeProgram);
-		m_arrayBuf->bind();
-		m_indexBuf->bind();
-		glDrawElements(GL_TRIANGLE_STRIP,36, GL_UNSIGNED_SHORT, BUFFER_OFFSET(0));
-		
-		m_cubeProgram->release();
-		m_texture->unbind();
+				//m_box->draw(m_cubeProgram);
+				m_arrayBuf->bind();
+				m_indexBuf->bind();
+				glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, BUFFER_OFFSET(0));
+
+				m_cubeProgram->release();
+				m_texture->unbind();
+			}
+		}
 	}
 	else
 	{

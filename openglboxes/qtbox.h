@@ -59,7 +59,7 @@ public:
     virtual ~QtBox();
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 protected:
-	void initGl();
+	void initGl(int dir,int index);
     ItemBase *createNew(int size, int x, int y) override;
 	int type() const override;
 private:
