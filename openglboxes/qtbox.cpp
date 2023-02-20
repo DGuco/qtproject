@@ -324,7 +324,7 @@ QtBox::QtBox(int size, int x, int y) : ItemBase(size, x, y), m_texture(0)
 		// 绑定索引数组 VBO 1
 		m_indexBuf->bind();
 		//申请空间
-		m_indexBuf->allocate(NULL, 4 * sizeof(GLushort));
+		m_indexBuf->allocate(NULL, 6 * sizeof(GLushort));
 	}
 
 	m_texture = new GLTexture2D(":/res/boxes/qt-logo.jpg", 64, 64);
@@ -365,38 +365,21 @@ void QtBox::initGl(int dir, int index)
 	// 绑定索引数组 VBO 1
 	m_indexBuf->bind();
 	GLushort* indices = (GLushort*)m_indexBuf->map(QOpenGLBuffer::ReadWrite);
-
-	indices[iindex++] = dataindex;
-	indices[iindex++] = dataindex + 1;
-	indices[iindex++] = dataindex + 2;
-	indices[iindex++] = dataindex + 3;
-	if (index == 0)
+	for (int i = 0; i < 2; ++i)
 	{
-		for (int i = 0; i < 2; ++i)
+		for (int j = 0; j < 2; ++j)
 		{
-			for (int j = 0; j < 2; ++j)
-			{
-				vertices[dataindex].normal = m_normals[2 * dir + 0];
-				vertices[dataindex].texCoord = m_texCoords[(j << 1) | i];
+			vertices[dataindex].normal = m_normals[2 * dir + index];
+			vertices[dataindex].texCoord = m_texCoords[(j << 1) | i];
+			if (index == 0)
 				vertices[dataindex].position = m_vertices[(i << ((dir + 2) % 3)) | (j << ((dir + 1) % 3))];
-				dataindex++;
-			}
-		}
-	}
-	else
-	{
-		for (int i = 0; i < 2; ++i)
-		{
-			for (int j = 0; j < 2; ++j)
-			{
-				vertices[dataindex].normal = m_normals[2 * dir + 1];
-				vertices[dataindex].texCoord = m_texCoords[(j << 1) | i];
+			else
 				vertices[dataindex].position = m_vertices[(1 << dir) | (i << ((dir + 1) % 3)) | (j << ((dir + 2) % 3))];
-				dataindex++;
-			}
+			indices[iindex++] = i * 2 + j;
+			dataindex++;
 		}
 	}
-
+	//解除显存映射
 	m_arrayBuf->unmap();
 	m_indexBuf->unmap();
 	
@@ -440,6 +423,16 @@ void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     float right = 2.0f * float(rect.right()) / width - 1.0f;
     float top = 1.0f - 2.0f * float(rect.top()) / height;
     float bottom = 1.0f - 2.0f * float(rect.bottom()) / height;
+
+	/*
+	在OpenGL中，矩阵是以列优先的方式(column-major order)存储的，而一般的数学书上是以行优
+	先的方式(row-major order)存储的。QMatrix4x4也是以列优先(column-major order)
+	列优先：						行优先：
+	m0     m4     m8     m12		m0     m1     m2     m3
+	m1     m5     m9     m13		m4     m5     m6     m7
+	m2     m6     m10   m14			m8     m9     m10    m11
+	m3     m7     m11   m15			m12    m13	  m14	 m15
+	*/
     float moveToRectMatrix[] = {
         0.5f * (right - left), 0.0f, 0.0f, 0.0f,
         0.0f, 0.5f * (bottom - top), 0.0f, 0.0f,
@@ -457,8 +450,10 @@ void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 
 	if (m_bDebug)
 	{
+		//左右，前后，上下，三个面
 		for (int dir = 0; dir < 3; ++dir) 
 		{
+			//每个面两个正方形
 			for (int index = 0; index < 2; index++)
 			{
 				initGl(dir, index);
@@ -469,24 +464,24 @@ void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 				//投影矩阵
 				QMatrix4x4 projection;
 				projection.perspective(60.0, 1.0, 0.01, 10.0);
-				//projection = projection * QMatrix4x4(moveToRectMatrix);
-				//qgluPerspective(projection,60.0, 1.0, 0.01, 10.0);
-
+				//qgluPerspective(projection, 60.0, 1.0, 0.01, 10.0);
+				
 				//观察矩阵(眼睛的位置)
 				QMatrix4x4 view;
-				view.lookAt(QVector3D(0.0, 0.0, 1.0f), QVector3D(0, 0, -1.0f), QVector3D(0, 1, 0));
+				//计算view矩阵
+				view.lookAt(QVector3D(0.0, 0.0, 0.5f), QVector3D(0, 0, -10), QVector3D(0, 1, 0));
 
 				//模型变换矩阵
 				QMatrix4x4 model;
 				model.setToIdentity();
-				model = model * QMatrix4x4(moveToRectMatrix);
-				model.translate(0.0f, 0.0f, -1.5f);
-				model.rotate(ROTATE_SPEED_X * m_startTime.msecsTo(QTime::currentTime()), 1.0f, 0.0f, 0.0f);
-				model.rotate(ROTATE_SPEED_Y * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 1.0f, 0.0f);
-				model.rotate(ROTATE_SPEED_Z * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 0.0f, 1.0f);
+				model.translate(0.45f * (right + left), 0.45f * (bottom + top), -1.5f);
+				model.scale(0.5f * (right - left), 0.5f * (bottom - top), 0);
 				int dt = m_startTime.msecsTo(QTime::currentTime());
 				if (dt < 500)
 					model.scale(dt / 500.0f, dt / 500.0f, dt / 500.0f);
+				model.rotate(ROTATE_SPEED_X * m_startTime.msecsTo(QTime::currentTime()), 1.0f, 0.0f, 0.0f);
+				model.rotate(ROTATE_SPEED_Y * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 1.0f, 0.0f);
+				model.rotate(ROTATE_SPEED_Z * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 0.0f, 1.0f);
 
 				QMatrix4x4 mvpmatrix = projection * model;
 				m_cubeProgram->setUniformValue("mvp_matrix", mvpmatrix);
@@ -591,9 +586,10 @@ void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
 	}
-    painter->endNativePainting();
 
-    ItemBase::paint(painter, option, widget);
+    painter->endNativePainting();
+	ItemBase::paint(painter, option, widget);
+	return;
 }
 
 //============================================================================//
