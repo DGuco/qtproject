@@ -570,10 +570,10 @@ Scene::Scene(int width, int height, int maxTextureSize)
 	connect(m_renderOptions, SIGNAL(widgetHide()), m_twoSidedGraphicsWidget, SLOT(hidewidget()));
 	connect(m_itemDialog, SIGNAL(widgetHide()), m_twoSidedGraphicsWidget, SLOT(hidewidget()));
 
-     addItem(new QtBox(64, width - 64, height - 64));
-     addItem(new QtBox(64, width - 64, 64));
-     addItem(new QtBox(64, 64, height - 64));
-    addItem(new QtBox(64, 64, 64));
+	addItem(new QtBox(64, width - 64, height - 64));
+// 	addItem(new QtBox(64, width - 64, 64));
+// 	addItem(new QtBox(64, 64, height - 64));
+// 	addItem(new QtBox(64, 64, 64));
 
     initGL();
 
@@ -1077,7 +1077,7 @@ void Scene::newItem(ItemDialog::ItemType type)
     QSize size = sceneRect().size().toSize();
     switch (type) {
     case ItemDialog::QtBoxItem:
-        addItem(new QtBox(64, rand() % (size.width() - 64) + 32, rand() % (size.height() - 64) + 32));
+        //addItem(new QtBox(64, rand() % (size.width() - 64) + 32, rand() % (size.height() - 64) + 32));
         break;
     case ItemDialog::CircleItem:
         addItem(new CircleItem(64, rand() % (size.width() - 64) + 32, rand() % (size.height() - 64) + 32));

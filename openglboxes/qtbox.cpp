@@ -35,13 +35,13 @@ QRectF ItemBase::boundingRect() const
 void ItemBase::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
 {
 	//被选中的时候给对应的提示
-    if (option->state & QStyle::State_Selected) {
+    //if (option->state & QStyle::State_Selected) {
         painter->setRenderHint(QPainter::Antialiasing, true);
 		//如果左键选中
         if (option->state & QStyle::State_HasFocus)
-            painter->setPen(Qt::yellow);
-        else  //右键选中
             painter->setPen(Qt::blue);
+        else  //右键选中
+            painter->setPen(Qt::yellow);
 		//组件四周画一个方框
         painter->drawRect(boundingRect());
 
@@ -51,7 +51,7 @@ void ItemBase::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->drawLine(m_size / 2 - 3, m_size / 2, m_size / 2, m_size / 2 - 3);
 
         painter->setRenderHint(QPainter::Antialiasing, false);
-    }
+    //}
 }
 
 void ItemBase::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
@@ -415,6 +415,7 @@ int QtBox::type() const
 
 void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+
     QRectF rect = boundingRect().translated(pos());
     float width = float(painter->device()->width());
     float height = float(painter->device()->height());
@@ -430,8 +431,8 @@ void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 	列优先：						行优先：
 	m0     m4     m8     m12		m0     m1     m2     m3
 	m1     m5     m9     m13		m4     m5     m6     m7
-	m2     m6     m10   m14			m8     m9     m10    m11
-	m3     m7     m11   m15			m12    m13	  m14	 m15
+	m2     m6     m10    m14		m8     m9     m10    m11
+	m3     m7     m11    m15		m12    m13	  m14	 m15
 	*/
     float moveToRectMatrix[] = {
         0.5f * (right - left), 0.0f, 0.0f, 0.0f,
@@ -441,62 +442,65 @@ void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     };
 
     painter->beginNativePainting();
-	glClear(GL_COLOR | GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_COLOR_MATERIAL);
-	glEnable(GL_NORMALIZE);
 
 	if (m_bDebug)
 	{
-		//左右，前后，上下，三个面
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_COLOR_MATERIAL);
+		glEnable(GL_NORMALIZE);
+
+		m_texture->bind();
+		glEnable(GL_TEXTURE_2D);
+		m_cubeProgram->bind();
+
+		//投影矩阵
+		QMatrix4x4 projection;
+		projection.perspective(60.0, 1.0, 0.01, 10.0);
+		//qgluPerspective(projection, 60.0, 1.0, 0.01, 10.0);
+
+// 		//观察矩阵(眼睛的位置)
+// 		QMatrix4x4 view;
+// 		//计算view矩阵
+// 		view.lookAt(QVector3D(0.0, 0.0, 2.0f), QVector3D(0, 0, -5.0f), QVector3D(0,1.0f, 0));
+
+		//模型变换矩阵
+		QMatrix4x4 model = QMatrix4x4(moveToRectMatrix);
+		model.translate(0.0f, 0.0f, -1.5f);
+		//model.translate(0.45f * (right + left), 0.45f * (bottom + top), -1.5f);
+		//model.scale(0.5f * (right - left), 0.5f * (bottom - top), 0.0f);
+		int dt = m_startTime.msecsTo(QTime::currentTime());
+		if (dt < 500)
+			model.scale(dt / 500.0f, dt / 500.0f, dt / 500.0f);
+		model.rotate(ROTATE_SPEED_X * m_startTime.msecsTo(QTime::currentTime()), 1.0f, 0.0f, 0.0f);
+		model.rotate(ROTATE_SPEED_Y * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 1.0f, 0.0f);
+		model.rotate(ROTATE_SPEED_Z * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 0.0f, 1.0f);
+		QMatrix4x4 mvpmatrix = projection * model;
+		m_cubeProgram->setUniformValue("mvp_matrix", mvpmatrix);
+		//渲染管线只有一个纹理，指定着色器texture为0号纹理
+		m_cubeProgram->setUniformValue("texture", 0);
+
+		//左右，前后，上下，三个方向
 		for (int dir = 0; dir < 3; ++dir) 
 		{
-			//每个面两个正方形
+			//每个方向两个正方形面
 			for (int index = 0; index < 2; index++)
 			{
 				initGl(dir, index);
-				m_texture->bind();
-				glEnable(GL_TEXTURE_2D);
-				m_cubeProgram->bind();
-
-				//投影矩阵
-				QMatrix4x4 projection;
-				projection.perspective(60.0, 1.0, 0.01, 10.0);
-				//qgluPerspective(projection, 60.0, 1.0, 0.01, 10.0);
-				
-				//观察矩阵(眼睛的位置)
-				QMatrix4x4 view;
-				//计算view矩阵
-				view.lookAt(QVector3D(0.0, 0.0, 0.5f), QVector3D(0, 0, -10), QVector3D(0, 1, 0));
-
-				//模型变换矩阵
-				QMatrix4x4 model;
-				model.setToIdentity();
-				model.translate(0.45f * (right + left), 0.45f * (bottom + top), -1.5f);
-				model.scale(0.5f * (right - left), 0.5f * (bottom - top), 0);
-				int dt = m_startTime.msecsTo(QTime::currentTime());
-				if (dt < 500)
-					model.scale(dt / 500.0f, dt / 500.0f, dt / 500.0f);
-				model.rotate(ROTATE_SPEED_X * m_startTime.msecsTo(QTime::currentTime()), 1.0f, 0.0f, 0.0f);
-				model.rotate(ROTATE_SPEED_Y * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 1.0f, 0.0f);
-				model.rotate(ROTATE_SPEED_Z * m_startTime.msecsTo(QTime::currentTime()), 0.0f, 0.0f, 1.0f);
-
-				QMatrix4x4 mvpmatrix = projection * model;
-				m_cubeProgram->setUniformValue("mvp_matrix", mvpmatrix);
-				//渲染管线只有一个纹理，指定着色器texture为0号纹理
-				m_cubeProgram->setUniformValue("texture", 0);
-
-				//m_box->draw(m_cubeProgram);
-				m_arrayBuf->bind();
-				m_indexBuf->bind();
 				glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, BUFFER_OFFSET(0));
-
-				m_cubeProgram->release();
-				m_texture->unbind();
 			}
 		}
+
+		m_cubeProgram->release();
+		m_texture->unbind();
+
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_LIGHTING);
+		glDisable(GL_COLOR_MATERIAL);
+		glDisable(GL_TEXTURE_2D);
+		glDisable(GL_LIGHT0);
+		glDisable(GL_NORMALIZE);
 	}
 	else
 	{
@@ -505,7 +509,7 @@ void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 		glLoadMatrixf(moveToRectMatrix);
 		QMatrix4x4 modelView;
 		qgluPerspective(modelView,60.0, 1.0, 0.01, 10.0);
-
+		
 		glMatrixMode(GL_MODELVIEW);
 		glPushMatrix();
 		glLoadIdentity();
@@ -536,8 +540,6 @@ void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 				glScalef(dt / 500.0f, dt / 500.0f, dt / 500.0f);
 		}
 
-		int dataindex = 0;
-		VertexData vertices[24] = { QVector3D(0,0,0)};
 		for (int dir = 0; dir < 3; ++dir) 
 		{
 			glColor4f(1.0f, 1.0f, 1.0f, 1.0);
@@ -546,11 +548,6 @@ void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 			glNormal3fv(reinterpret_cast<float *>(&m_normals[2 * dir + 0]));
 			for (int i = 0; i < 2; ++i) {
 				for (int j = 0; j < 2; ++j) {
-					vertices[dataindex].normal = m_normals[2 * dir + 0];
-					vertices[dataindex].texCoord = m_texCoords[(j << 1) | i];
-					vertices[dataindex].position = m_vertices[(i << ((dir + 2) % 3)) | (j << ((dir + 1) % 3))];
-					dataindex++;
-
 					glTexCoord2fv(reinterpret_cast<float *>(&m_texCoords[(j << 1) | i]));
 					glVertex3fv(reinterpret_cast<float *>(&m_vertices[(i << ((dir + 2) % 3)) | (j << ((dir + 1) % 3))]));
 				}
@@ -563,10 +560,6 @@ void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 				for (int j = 0; j < 2; ++j) {
 					glTexCoord2fv(reinterpret_cast<float *>(&m_texCoords[(j << 1) | i]));
 					glVertex3fv(reinterpret_cast<float *>(&m_vertices[(1 << dir) | (i << ((dir + 1) % 3)) | (j << ((dir + 2) % 3))]));
-					vertices[dataindex].normal = m_normals[2 * dir + 1];
-					vertices[dataindex].texCoord = m_texCoords[(j << 1) | i];
-					vertices[dataindex].position = m_vertices[(1 << dir) | (i << ((dir + 1) % 3)) | (j << ((dir + 2) % 3))];
-					dataindex++;
 				}
 			}
 			glEnd();
@@ -587,7 +580,7 @@ void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 		glPopMatrix();
 	}
 
-    painter->endNativePainting();
+	painter->endNativePainting();
 	ItemBase::paint(painter, option, widget);
 	return;
 }
