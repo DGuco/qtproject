@@ -571,9 +571,9 @@ Scene::Scene(int width, int height, int maxTextureSize)
 	connect(m_itemDialog, SIGNAL(widgetHide()), m_twoSidedGraphicsWidget, SLOT(hidewidget()));
 
 	addItem(new QtBox(64, width - 64, height - 64));
-// 	addItem(new QtBox(64, width - 64, 64));
-// 	addItem(new QtBox(64, 64, height - 64));
-// 	addItem(new QtBox(64, 64, 64));
+	addItem(new QtBox(64, width - 64, 64));
+	addItem(new QtBox(64, 64, height - 64));
+	addItem(new QtBox(64, 64, 64));
 
     initGL();
 

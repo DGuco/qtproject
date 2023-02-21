@@ -59,7 +59,6 @@ public:
     virtual ~QtBox();
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 protected:
-	void initGl(int dir,int index);
     ItemBase *createNew(int size, int x, int y) override;
 	int type() const override;
 private:
@@ -67,14 +66,7 @@ private:
 	QVector2D m_texCoords[4];
     QVector3D m_normals[6];
     GLTexture *m_texture;
-	QGLShader *m_vertexShader;
-	QGLShader *m_fragmentShader;
-	QGLShaderProgram* m_cubeProgram;
 	GLRoundedBox *m_box;
-	VertexData m_renderData[24];
-	QOpenGLBuffer *m_arrayBuf;
-	QOpenGLBuffer *m_indexBuf;
-	bool		m_bDebug;
 };
 
 class CircleItem : public ItemBase
