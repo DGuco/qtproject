@@ -1,5 +1,6 @@
 #version 330 core
 //像素着色器
+out vec4 FragColor;
 
 in vec3 Normal;  
 in vec3 FragPos;  
@@ -33,6 +34,6 @@ void main()
 	//获取纹理中对应的颜色
     vec4 textureColor = texture2D(texture, v_texcoord);
 	//把纹理中的颜色和光照参数相乘
-    gl_FragColor = vec4(ambient + diffuse + specular, 1.0) * textureColor;
+    FragColor = vec4(ambient + diffuse + specular, 1.0) * textureColor;
 }
 
