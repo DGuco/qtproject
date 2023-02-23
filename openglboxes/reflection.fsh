@@ -1,5 +1,13 @@
-varying vec3 position, normal;
-varying vec4 lightDirection,color;
+#version 330 core
+//ÏñËØ×ÅÉ«Æ÷
+#extension GL_NV_shadow_samplers_cube : enable
+out vec4 FragColor;
+
+in vec3 position;
+in vec3 normal;
+in vec3 texcoord;
+in vec4 lightDirection;
+in vec4 color;
 
 uniform sampler2D tex;
 uniform samplerCube env;
@@ -15,5 +23,5 @@ void main()
 {
     vec3 N = normalize(normal);
     vec3 R = 2.0 * dot(-position, N) * N + position;
-    gl_FragColor = textureCube(env, R * mat3(lightview[0].xyz, lightview[1].xyz, lightview[2].xyz));
+    FragColor = textureCube(env, R * mat3(lightview[0].xyz, lightview[1].xyz, lightview[2].xyz));
 }

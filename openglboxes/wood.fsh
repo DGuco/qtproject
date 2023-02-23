@@ -1,5 +1,13 @@
-varying vec3 position, normal,texcoord;
-varying vec4 lightDirection,color;
+#version 330 core
+//ÏñËØ×ÅÉ«Æ÷
+#extension GL_NV_shadow_samplers_cube : enable
+out vec4 FragColor;
+
+in vec3 position;
+in vec3 normal;
+in vec3 texcoord;
+in vec4 lightDirection;
+in vec4 color;
 
 uniform sampler2D tex;
 uniform sampler3D noise;
@@ -20,7 +28,7 @@ uniform float material_shininess;
 void main()
 {
     float r = length(texcoord.yz);
-    r += woodTubulence * texture3D(noise, 0.25 * texcoord.xyz).x;
+    r += woodTubulence * texture(noise, 0.25 * texcoord.xyz).x;
 
     vec3 N = normalize(normal);
     // assume directional light
@@ -30,6 +38,6 @@ void main()
 
     float f = fract(16.0 * r);
     vec4 unlitColor = mix(woodColors[0], woodColors[1], min(1.25 * f, 5.0 - 5.0 * f));
-    gl_FragColor = (light_ambient + light_diffuse * max(NdotL, 0.0)) * unlitColor +
+    FragColor = (light_ambient + light_diffuse * max(NdotL, 0.0)) * unlitColor +
                     material_specular * light_specular * pow(max(RdotL, 0.0), material_shininess);
 }

@@ -1,5 +1,13 @@
-varying vec3 position, normal,texcoord;
-varying vec4 lightDirection,color;
+#version 330 core
+//ÏñËØ×ÅÉ«Æ÷
+#extension GL_NV_shadow_samplers_cube : enable
+out vec4 FragColor;
+
+in vec3 position;
+in vec3 normal;
+in vec3 texcoord;
+in vec4 lightDirection;
+in vec4 color;
 
 uniform sampler2D tex;
 uniform vec4 light_position;
@@ -24,6 +32,6 @@ void main()
 
     vec4 unlitColor = color * (0.8 - clamp(10.0 * (0.4 - rs), 0.0, 0.2));
     unlitColor.w = 1.0;
-    gl_FragColor = (light_ambient + light_diffuse * max(NdotL, 0.0)) * unlitColor +
+    FragColor = (light_ambient + light_diffuse * max(NdotL, 0.0)) * unlitColor +
                     material_specular * light_specular * pow(max(RdotL, 0.0), material_shininess);
 }

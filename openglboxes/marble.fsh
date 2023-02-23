@@ -1,5 +1,13 @@
-varying vec3 position, normal,texcoord;
-varying vec4 lightDirection,color;
+#version 330 core
+//ÏñËØ×ÅÉ«Æ÷
+#extension GL_NV_shadow_samplers_cube : enable
+out vec4 FragColor;
+
+in vec3 position;
+in vec3 normal;
+in vec3 texcoord;
+in vec4 lightDirection;
+in vec4 color;
 
 uniform sampler2D tex;
 uniform sampler3D noise;
@@ -17,7 +25,7 @@ void main()
     float turbulence = 0.0;
     float scale = 1.0;
     for (int i = 0; i < 4; ++i) {
-        turbulence += scale * (texture3D(noise, 0.125 * texcoord.xyz / scale).x - 0.5);
+        turbulence += scale * (texture(noise, 0.125 * texcoord.xyz / scale).x - 0.5);
         scale *= 0.5;
     }
 
@@ -28,6 +36,6 @@ void main()
     float RdotL = dot(reflect(normalize(position), N), lightDirection.xyz);
 
     vec4 unlitColor = mix(marbleColors[0], marbleColors[1], exp(-4.0 * abs(turbulence)));
-    gl_FragColor = (light_ambient + light_diffuse * max(NdotL, 0.0)) * unlitColor +
+    FragColor = (light_ambient + light_diffuse * max(NdotL, 0.0)) * unlitColor +
                     material_specular * light_specular * pow(max(RdotL, 0.0), material_shininess);
 }

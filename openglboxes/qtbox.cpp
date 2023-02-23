@@ -43,8 +43,8 @@ void ItemBase::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         else  //右键选中
             painter->setPen(Qt::blue);
 		//组件四周画一个方框
-        painter->drawRect(boundingRect());
-
+		painter->drawRect(boundingRect());
+		
 		//方框右下角画三条线
         painter->drawLine(m_size / 2 - 9, m_size / 2, m_size / 2, m_size / 2 - 9);
         painter->drawLine(m_size / 2 - 6, m_size / 2, m_size / 2, m_size / 2 - 6);
@@ -298,7 +298,6 @@ int QtBox::type() const
 
 void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-
     QRectF rect = boundingRect().translated(pos());
     float width = float(painter->device()->width());
     float height = float(painter->device()->height());
@@ -325,7 +324,6 @@ void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     };
 
     painter->beginNativePainting();
-
 	m_texture->bind();
 	glEnable(GL_TEXTURE_2D);
 
@@ -343,7 +341,7 @@ void QtBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 	QMatrix4x4 modelView;
 	qgluPerspective(modelView,60.0, 1.0, 0.01, 10.0);
 
-	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_COLOR_MATERIAL);

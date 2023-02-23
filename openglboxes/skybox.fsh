@@ -1,4 +1,9 @@
-varying vec3 texcoord;
+#version 330 core
+//ÏñËØ×ÅÉ«Æ÷
+#extension GL_NV_shadow_samplers_cube : enable
+out vec4 FragColor;
+
+in vec3 texcoord;
 
 uniform samplerCube env;
 uniform vec4 light_position;
@@ -10,5 +15,5 @@ uniform float material_shininess;
 
 void main() 
 { 
-	gl_FragColor = textureCube(env,texcoord.xyz);
+	FragColor = textureCube(env,texcoord.xyz);
 }
