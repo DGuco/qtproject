@@ -778,10 +778,6 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
         if (i == excludeBox)
             continue;
 
-		//3,4,5,6,7,8
-		if (i != 0)
-			continue;
-
 		QMatrix4x4 cubemodel_mat;
 		cubemodel_mat.rotate(m_trackBalls[1].rotation());
 		cubemodel_mat = model_mat * cubemodel_mat;
@@ -829,33 +825,42 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 	//渲染中心的立方体
     if (-1 != excludeBox) 
 	{
-// 		QMatrix4x4 cubemodel_mat;
-// 		cubemodel_mat.rotate(m_trackBalls[0].rotation());
-// 		cubemodel_mat = model_mat * cubemodel_mat;
-// 		QMatrix3x3 normal_mat = (view_mat * cubemodel_mat).normalMatrix();
-// 
-// 		if (glActiveTexture) {
-// 			m_mainCubemap->bind();
-// 		}
-// 
-//         m_programs[m_currentShader]->bind();
-//         m_programs[m_currentShader]->setUniformValue("tex", GLint(0));
-//         m_programs[m_currentShader]->setUniformValue("env", m_environment->textureId());
-//         m_programs[m_currentShader]->setUniformValue("noise",m_noise->textureId());
-//         m_programs[m_currentShader]->setUniformValue("invView", invView);
-// 		m_programs[m_currentShader]->setUniformValue("projection_mat", projection_mat);
-// 		m_programs[m_currentShader]->setUniformValue("view_mat", view_mat);
-// 		m_programs[m_currentShader]->setUniformValue("model_mat", cubemodel_mat);
-// 		m_programs[m_currentShader]->setUniformValue("lightview", lightview);
-// 		m_programs[m_currentShader]->setUniformValue("normal_mat", normal_mat);
-// 		setLights(m_programs[m_currentShader]);
-// 
-//         m_box->draw(m_programs[m_currentShader]);
-//         m_programs[m_currentShader]->release();
-// 
-//         if (glActiveTexture) {
-// 			m_mainCubemap->unbind();
-//         }
+		QMatrix4x4 cubemodel_mat;
+		cubemodel_mat.rotate(m_trackBalls[0].rotation());
+		cubemodel_mat = model_mat * cubemodel_mat;
+		QMatrix3x3 normal_mat = (view_mat * cubemodel_mat).normalMatrix();
+
+		if (glActiveTexture) {
+			m_mainCubemap->bind();
+		}
+
+        m_programs[m_currentShader]->bind();
+        m_programs[m_currentShader]->setUniformValue("tex", GLint(0));
+        m_programs[m_currentShader]->setUniformValue("env", m_environment->textureId());
+        m_programs[m_currentShader]->setUniformValue("noise",m_noise->textureId());
+        m_programs[m_currentShader]->setUniformValue("invView", invView);
+		m_programs[m_currentShader]->setUniformValue("projection_mat", projection_mat);
+		m_programs[m_currentShader]->setUniformValue("view_mat", view_mat);
+		m_programs[m_currentShader]->setUniformValue("model_mat", cubemodel_mat);
+		m_programs[m_currentShader]->setUniformValue("lightview", lightview);
+		m_programs[m_currentShader]->setUniformValue("normal_mat", normal_mat);
+		m_programs[m_currentShader]->setUniformValue("lightview", lightview);
+		m_programs[m_currentShader]->setUniformValue("light_position", QVector4D(0.0f, 0.0f, 1.0f, 0.0f));
+		m_programs[m_currentShader]->setUniformValue("light_ambient", QVector4D(1.0f, 1.0f, 1.0f, 1.0f));
+		m_programs[m_currentShader]->setUniformValue("light_diffuse", QVector4D(1.0f, 1.0f, 1.0f, 1.0f));
+		m_programs[m_currentShader]->setUniformValue("light_specular", QVector4D(1.0f, 1.0f, 1.0f, 1.0f));
+		m_programs[m_currentShader]->setUniformValue("material_specular", QVector4D(1.0f, 1.0f, 1.0f, 1.0f));
+		m_programs[m_currentShader]->setUniformValue("material_shininess", 1.0F);
+		m_programs[m_currentShader]->setUniformValue("basicColor", QVector4D(1.0f, 1.0f, 1.0f, 1.0f));
+
+		setLights(m_programs[m_currentShader]);
+
+        m_box->draw(m_programs[m_currentShader]);
+        m_programs[m_currentShader]->release();
+
+        if (glActiveTexture) {
+			m_mainCubemap->unbind();
+        }
     }
 
     if (glActiveTexture) {

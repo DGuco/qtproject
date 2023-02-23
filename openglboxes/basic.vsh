@@ -31,6 +31,6 @@ void main()
 	texcoord = vec3(a_position);
 	position = (view_mat * model_mat * vec4(a_position, 1)).xyz;
 
-	color = vec4(color.rgb,0.0);
+	color = vec4(a_color);
 	gl_Position =  projection_mat *  view_mat * model_mat * vec4(a_position, 1);
 }
