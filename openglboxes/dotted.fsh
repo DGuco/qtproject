@@ -1,13 +1,13 @@
-#version 330 core
+#version 410 core
 //ÏñËØ×ÅÉ«Æ÷
 #extension GL_NV_shadow_samplers_cube : enable
 out vec4 FragColor;
 
-in vec3 position;
-in vec3 normal;
-in vec3 texcoord;
-in vec4 lightDirection;
-in vec4 color;
+layout(location = 0) in vec3 position;
+layout(location = 1) in vec3 normal;
+layout(location = 2) in vec3 texcoord;
+layout(location = 3) in vec4 lightDirection;
+layout(location = 4) in vec4 color;
 
 uniform sampler2D tex;
 uniform vec4 light_position;

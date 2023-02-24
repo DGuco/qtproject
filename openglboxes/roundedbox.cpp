@@ -94,7 +94,6 @@ GLRoundedBox::GLRoundedBox(float r, float scale, int n)
                 vp[vidx].position = scale * pos;
                 vp[vidx].normal = centre * normal;
                 vp[vidx].texCoord = QVector2D(pos.x() + 0.5f, pos.y() + 0.5f);
-				vp[vidx].color = VERTEX_COLOR;
                 // Corner polygons
                 if (i < n + 1) {
                     ip[iidx++] = vidx;

@@ -178,11 +178,7 @@ public:
 		program->enableAttributeArray(normalLocation);
 		program->setAttributeBuffer(normalLocation, GL_FLOAT, offset, 3, sizeof(T));
 
-		offset += sizeof(QVector3D);
-		int colorLocation = program->attributeLocation("a_color");
-		program->enableAttributeArray(colorLocation);
-		program->setAttributeBuffer(colorLocation, GL_FLOAT, offset, 4, sizeof(T));
-    }
+	}
 
     void unbind(QGLShaderProgram *program)
     {

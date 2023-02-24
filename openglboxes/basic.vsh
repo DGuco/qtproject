@@ -1,4 +1,4 @@
-#version 330 core
+#version 410 core
 //¶¥µã×ÅÉ«Æ÷
 uniform mat4 lightview;
 uniform mat4 projection_mat;
@@ -17,11 +17,11 @@ layout(location = 1) in vec2 a_texcoord;
 layout(location = 2) in vec3 a_normal;
 layout(location = 3) in vec4 a_color;
 
-out vec3 position;
-out vec3 normal;
-out vec3 texcoord;
-out vec4 lightDirection;
-out vec4 color;
+layout(location = 0) out vec3 position;
+layout(location = 1) out vec3 normal;
+layout(location = 2) out vec3 texcoord;
+layout(location = 3) out vec4 lightDirection;
+layout(location = 4) out vec4 color;
 
 void main()
 {
@@ -31,6 +31,6 @@ void main()
 	texcoord = vec3(a_position);
 	position = (view_mat * model_mat * vec4(a_position, 1)).xyz;
 
-	color = vec4(a_color);
+	color = a_color;
 	gl_Position =  projection_mat *  view_mat * model_mat * vec4(a_position, 1);
 }
