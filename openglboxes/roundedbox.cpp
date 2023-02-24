@@ -1,17 +1,6 @@
 #include "roundedbox.h"
 
 //============================================================================//
-//                                P3T2N3Vertex                                //
-//============================================================================//
-
-VertexDescription P3T2N3Vertex::description[] = {
-    {VertexDescription::Position, GL_FLOAT, SIZE_OF_MEMBER(P3T2N3Vertex, position) / sizeof(float), 0, 0},
-    {VertexDescription::TexCoord, GL_FLOAT, SIZE_OF_MEMBER(P3T2N3Vertex, texCoord) / sizeof(float), sizeof(QVector3D), 1},
-    {VertexDescription::Normal, GL_FLOAT, SIZE_OF_MEMBER(P3T2N3Vertex, normal) / sizeof(float), sizeof(QVector3D) + sizeof(QVector2D), 2},
-	{VertexDescription::Color, GL_FLOAT, SIZE_OF_MEMBER(P3T2N3Vertex, color) / sizeof(float), sizeof(QVector3D) + sizeof(QVector2D) + sizeof(QVector3D), 3 },
-};
-
-//============================================================================//
 //                                GLRoundedBox                                //
 //============================================================================//
 
@@ -26,8 +15,10 @@ GLRoundedBox::GLRoundedBox(float r, float scale, int n)
     int vidx = 0, iidx = 0;
     int vertexCountPerCorner = (n + 2) * (n + 3) / 2;
 
+	//VAO
     P3T2N3Vertex *vp = m_vb.lock();
-    unsigned short *ip = m_ib.lock();
+    //VBO
+	unsigned short *ip = m_ib.lock();
 
     if (!vp || !ip) {
         qWarning("GLRoundedBox::GLRoundedBox: Failed to lock vertex buffer and/or index buffer.");
@@ -93,7 +84,8 @@ GLRoundedBox::GLRoundedBox(float r, float scale, int n)
 
                 vp[vidx].position = scale * pos;
                 vp[vidx].normal = centre * normal;
-                vp[vidx].texCoord = QVector2D(pos.x() + 0.5f, pos.y() + 0.5f);
+                vp[vidx].texCoord = scale * pos;
+
                 // Corner polygons
                 if (i < n + 1) {
                     ip[iidx++] = vidx;

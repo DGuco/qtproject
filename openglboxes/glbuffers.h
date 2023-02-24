@@ -171,9 +171,9 @@ public:
 		offset += sizeof(QVector3D);
 		int texcoordLocation = program->attributeLocation("a_texcoord");
 		program->enableAttributeArray(texcoordLocation);
-		program->setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 2, sizeof(T));
+		program->setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 3, sizeof(T));
 
-		offset += sizeof(QVector2D);
+ 		offset += sizeof(QVector3D);
 		int normalLocation = program->attributeLocation("a_normal");
 		program->enableAttributeArray(normalLocation);
 		program->setAttributeBuffer(normalLocation, GL_FLOAT, offset, 3, sizeof(T));

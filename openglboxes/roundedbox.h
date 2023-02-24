@@ -15,10 +15,8 @@
 struct P3T2N3Vertex
 {
     QVector3D position;
-    QVector2D texCoord;
+	QVector3D texCoord;
     QVector3D normal;
-	QVector4D color;
-    static VertexDescription description[];
 };
 
 #define VERTEX_COLOR QVector4D(1.0f,1.0f,1.0f,0.0f)
