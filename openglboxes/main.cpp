@@ -8,6 +8,8 @@
  * https://baijiahao.baidu.com/s?id=1708089581887590806&wfr=spider&for=pc
  * https://blog.csdn.net/zwj_zny/article/details/123070087
  * https://blog.csdn.net/lwx309025167/article/details/83990802
+ * https://blog.csdn.net/u011686167/article/details/127497647
+ * https://learnopengl-cn.github.io/02%20Lighting/02%20Basic%20Lighting/
  */
 #include "glextensions.h"
 
