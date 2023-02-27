@@ -169,7 +169,7 @@ public slots:
     void setFloatParameter(const QString &name, float value);
     void newItem(ItemDialog::ItemType type);
 protected:
-    void renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view_mat, const QMatrix4x4 &model_mat, int excludeBox = -2);
+    void renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view_mat, const QMatrix4x4 &model_mat, int skybox = 0);
     void initOpenGLParams();
     void setLights(QGLShaderProgram* program);
 
@@ -178,6 +178,7 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
     void wheelEvent(QGraphicsSceneWheelEvent * event) override;
 	void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
+	void keyPressEvent(QKeyEvent *event) override;
 private:
     void initGL();
     QPointF pixelPosToViewPos(const QPointF& p);
@@ -206,6 +207,9 @@ private:
 	GLTextureCube *m_environment;    //立方体贴图
     QGLShader *m_environmentShader;  //天空壳shader
     QGLShaderProgram *m_environmentProgram;//天空壳shader program
+	QVector3D  m_cameraPos;
+	QVector3D  m_cameraFront;
+	QVector3D  m_cameraUp;
 };
 
 #endif
