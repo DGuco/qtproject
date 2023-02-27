@@ -209,7 +209,7 @@ void TwoSidedGraphicsWidget::showidget()
 			int high = pScene->height();
 			QRectF r = m_proxyWidgets[m_current]->boundingRect();
 			//移动至屏幕中央
-			m_proxyWidgets[m_current]->setPos(width / 2 - r.width() / 2 , high /2 - r.height() / 2);
+			m_proxyWidgets[m_current]->setPos(width / 2 - r.width() / 2, high / 2 - r.height() / 2);
 			m_proxyWidgets[m_current]->setVisible(true);
 			animateShow();
 		}
@@ -280,6 +280,9 @@ void TwoSidedGraphicsWidget::animateShow()
 	{
 		QTransform anTransform;
 		m_proxyWidgets[m_current]->setTransform(anTransform);
+		m_delta = 0;
+		m_scale = 0;
+		m_angle = (m_current == 0) ? 0 : 180;
 		return;
 	}
 	QRectF r = m_proxyWidgets[m_current]->boundingRect();
