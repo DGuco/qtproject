@@ -812,9 +812,7 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 		m_programs[i]->setUniformValue("light_specular", QVector4D(1.0f, 1.0f, 1.0f, 1.0f));
 		m_programs[i]->setUniformValue("material_specular", QVector4D(1.0f, 1.0f, 1.0f, 1.0f));
 		m_programs[i]->setUniformValue("material_shininess", 1.0F);
-		m_programs[i]->setUniformValue("basicColor", QVector4D(1.0f, 1.0f, 1.0f, 1.0f));
 
-		
 		setLights(m_programs[i]);
 
         m_box->draw(m_programs[i]);
@@ -854,7 +852,6 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 		m_programs[m_currentShader]->setUniformValue("light_specular", QVector4D(1.0f, 1.0f, 1.0f, 1.0f));
 		m_programs[m_currentShader]->setUniformValue("material_specular", QVector4D(1.0f, 1.0f, 1.0f, 1.0f));
 		m_programs[m_currentShader]->setUniformValue("material_shininess", 1.0F);
-		m_programs[m_currentShader]->setUniformValue("basicColor", QVector4D(1.0f, 1.0f, 1.0f, 1.0f));
 
 		setLights(m_programs[m_currentShader]);
 
