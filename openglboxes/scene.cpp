@@ -585,7 +585,7 @@ Scene::Scene(int width, int height, int maxTextureSize)
     m_timer->start();
 
 	m_cameraPos = QVector3D(0.0, 0.0, 1.0);
-	m_cameraFront = QVector3D(0, 0, -20);
+	m_cameraFront = QVector3D(0, 0, -40);
 	m_cameraUp = QVector3D(0, 1, 0);
 }
 
@@ -753,7 +753,7 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 	{
 		glDisable(GL_LIGHTING);
 		glDisable(GL_CULL_FACE);
-
+		glDepthFunc(GL_LEQUAL);
 		//天空壳
 		if (glActiveTexture && skybox)
 		{
@@ -769,11 +769,13 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 			m_environmentProgram->setUniformValue("model_mat", skymodel_mat);
 			m_environmentProgram->setUniformValue("normal_mat", normal_mat);
 			m_environmentProgram->setUniformValue("lightview", lightview);
+			m_environmentProgram->setUniformValue("render_type", 1);
 			setLights(m_environmentProgram);
 			m_box->draw(m_environmentProgram);
 			m_environmentProgram->release();
 			m_environment->unbind();
 		}
+		glDepthFunc(GL_LESS);
 	}
 	else
 	{
@@ -814,6 +816,7 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 			m_programs[i]->setUniformValue("light_specular", QVector4D(1.0f, 1.0f, 1.0f, 1.0f));
 			m_programs[i]->setUniformValue("material_specular", QVector4D(1.0f, 1.0f, 1.0f, 1.0f));
 			m_programs[i]->setUniformValue("material_shininess", 1.0F);
+			m_environmentProgram->setUniformValue("render_type", 0);
 
 			setLights(m_programs[i]);
 
@@ -853,6 +856,7 @@ void Scene::renderBoxes(const QMatrix4x4 &projection_mat, const QMatrix4x4 &view
 			m_programs[m_currentShader]->setUniformValue("light_specular", QVector4D(1.0f, 1.0f, 1.0f, 1.0f));
 			m_programs[m_currentShader]->setUniformValue("material_specular", QVector4D(1.0f, 1.0f, 1.0f, 1.0f));
 			m_programs[m_currentShader]->setUniformValue("material_shininess", 1.0F);
+			m_environmentProgram->setUniformValue("render_type", 0);
 
 			setLights(m_programs[m_currentShader]);
 
@@ -937,6 +941,7 @@ void Scene::drawBackground(QPainter *painter, const QRectF &rect)
 		{
 			//观察矩阵(眼睛的位置)
 			QMatrix4x4 view;
+			//天空壳不随w，a，s，d移动
 			view.lookAt(QVector3D(0.0, 0.0, 1.0), QVector3D(0, 0, -20), QVector3D(0, 1, 0));
 			
 			//模型变换矩阵

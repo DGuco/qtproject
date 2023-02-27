@@ -11,6 +11,7 @@ uniform vec4 light_diffuse;
 uniform vec4 light_specular;
 uniform vec4 material_specular;
 uniform float material_shininess;
+uniform int  render_type;
 
 layout(location = 0) in vec3 a_position;
 layout(location = 1) in vec3 a_texcoord;
@@ -37,6 +38,14 @@ void main()
 		//观察空间坐标(从右向左做运算) = 观察矩阵 * 变换矩阵 * 局部空间坐标
 		position = (view_mat * model_mat * vec4(a_position, 1)).xyz;
 	}
-	//最终屏幕坐标 = 透视矩阵 * 观察矩阵 * 变换矩阵 * 局部空间坐标(从右向左做运算)
-	gl_Position =  projection_mat *  view_mat * model_mat * vec4(a_position, 1);
+	if (render_type == 0)
+	{
+		//最终屏幕坐标 = 透视矩阵 * 观察矩阵 * 变换矩阵 * 局部空间坐标(从右向左做运算)
+		gl_Position = projection_mat *  view_mat * model_mat * vec4(a_position, 1);
+	}
+	else
+	{
+		vec4 pos = projection_mat *  view_mat * model_mat * vec4(a_position, 1);
+		gl_Position = pos.xyww;
+	}
 }
