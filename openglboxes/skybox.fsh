@@ -18,5 +18,6 @@ uniform float material_shininess;
 
 void main() 
 { 
+	//输出颜色 = 直接取天空壳纹理色
 	FragColor = textureCube(env,texcoord.xyz);
 }
