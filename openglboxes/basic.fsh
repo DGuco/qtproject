@@ -30,7 +30,7 @@ void main()
 
 	//向量的绝对值
     vec3 absN = abs(texcoord.xyz);
-	//把立方体移到坐标轴的原点
+	//把立方体坐标系移到坐标轴的原点
 	vec3 zerttexcoord = texcoord + 0.5;
     vec2 texCoord;
 	//左右两个面(纹理取向量yz)

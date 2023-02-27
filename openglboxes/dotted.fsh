@@ -19,10 +19,12 @@ uniform float material_shininess;
 
 void main()
 {
+	//归一化法线向量
     vec3 N = normalize(normal);
 
-    // assume directional light
+	//光照和法向量的夹角的cos值
     float NdotL = dot(N, lightDirection.xyz);
+	//反射光照和法向量的夹角的cos值
     float RdotL = dot(reflect(normalize(position), N), lightDirection.xyz);
 
     float r1 = length(fract(7.0 * texcoord.xyz) - 0.5);

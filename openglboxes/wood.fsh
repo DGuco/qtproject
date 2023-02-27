@@ -26,17 +26,23 @@ uniform float material_shininess;
 
 void main()
 {
+	//取左右两个面(纹理取向量yz的长度)作为半径
     float r = length(texcoord.yz);
+	//半径 + 噪声 * 波纹参数
     r += woodTubulence * texture(noise, 0.25 * texcoord.xyz).x;
 
+	//法向量标准化
     vec3 N = normalize(normal);
-    // assume directional light
 
+	//光照和法向量的夹角的cos值
     float NdotL = dot(N, lightDirection.xyz);
+	//反射光照和法向量的夹角的cos值
     float RdotL = dot(reflect(normalize(position), N), lightDirection.xyz);
 
     float f = fract(16.0 * r);
+	//像素颜色
     vec4 unlitColor = mix(woodColors[0], woodColors[1], min(1.25 * f, 5.0 - 5.0 * f));
+	//输出最终颜色 =(环境光照 + 漫反射光照 * 光照夹角cos值) * 初始颜色 + 材质的颜色
     FragColor = (light_ambient + light_diffuse * max(NdotL, 0.0)) * unlitColor +
                     material_specular * light_specular * pow(max(RdotL, 0.0), material_shininess);
 }
